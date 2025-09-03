@@ -4,13 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 // Types
-export type TicketStatus =
-  | "NEW"
-  | "IN_PROGRESS"
-  | "DONE"
-  | "OPEN"
-  | "RESOLVED"
-  | "CLOSED";
+export type TicketStatus = "NEW" | "IN_PROGRESS" | "DONE";
 
 type Ticket = {
   id: string;
