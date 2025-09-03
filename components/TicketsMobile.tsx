@@ -565,7 +565,7 @@ function CategorySelector({
 
 // Dashboard
 export function TicketsDashboard({
-  apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:7071",
+  apiBase = process.env.NEXT_PUBLIC_API_BASE ?? "",
 }: {
   apiBase?: string;
 }) {
@@ -682,7 +682,7 @@ export function TicketsDashboard({
 
 // App
 export default function TicketsApp({
-  apiBase = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:7071",
+  apiBase = process.env.NEXT_PUBLIC_API_BASE ?? "",
 }: {
   apiBase?: string;
 }) {
