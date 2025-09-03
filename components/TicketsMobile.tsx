@@ -564,11 +564,7 @@ function CategorySelector({
 }
 
 // Dashboard
-export function TicketsDashboard({
-  apiBase = process.env.NEXT_PUBLIC_API_BASE ?? "",
-}: {
-  apiBase?: string;
-}) {
+export function TicketsDashboard({ apiBase = "/_api" }: { apiBase?: string }) {
   const { items: newItems, loading: l1 } = useTickets(apiBase, "NEW");
   const { items: progItems, loading: l2 } = useTickets(apiBase, "IN_PROGRESS");
   const { items: doneItems, loading: l3 } = useTickets(apiBase, "DONE");
@@ -682,7 +678,7 @@ export function TicketsDashboard({
 
 // App
 export default function TicketsApp({
-  apiBase = process.env.NEXT_PUBLIC_API_BASE ?? "",
+  apiBase = "/_api",
 }: {
   apiBase?: string;
 }) {
