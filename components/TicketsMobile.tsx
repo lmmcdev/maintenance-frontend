@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 // Types
-export type TicketStatus = "NEW" | "IN_PROGRESS" | "DONE";
+export type TicketStatus = "NEW" | "OPEN" | "DONE";
 
 type Ticket = {
   id: string;
@@ -70,7 +70,7 @@ async function patchTicket(
 async function patchStatus(
   apiBase: string,
   id: string,
-  status: "IN_PROGRESS" | "DONE"
+  status: "OPEN" | "DONE"
 ) {
   const res = await fetch(`${apiBase}/api/v1/tickets/${id}/status`, {
     method: "PATCH",
@@ -187,7 +187,7 @@ function StatusBadge({ status }: { status: TicketStatus }) {
     switch (status) {
       case "NEW":
         return "bg-blue-100 text-blue-800";
-      case "IN_PROGRESS":
+      case "OPEN":
         return "bg-amber-100 text-amber-800";
       case "DONE":
         return "bg-emerald-100 text-emerald-800";
@@ -218,7 +218,7 @@ function TicketCard({
   const [persons, setPersons] = useState<Person[]>([]);
   const [query, setQuery] = useState("");
 
-  async function doStatus(next: "IN_PROGRESS" | "DONE") {
+  async function doStatus(next: "OPEN" | "DONE") {
     try {
       setBusy("status");
       await patchStatus(apiBase, t.id, next);
@@ -243,7 +243,7 @@ function TicketCard({
     try {
       setBusy("assign");
       await patchTicket(apiBase, t.id, { assigneeId: personId });
-      await patchStatus(apiBase, t.id, "IN_PROGRESS");
+      await patchStatus(apiBase, t.id, "OPEN");
       setAssignOpen(false);
       onChanged?.();
     } catch (e) {
@@ -284,13 +284,13 @@ function TicketCard({
         >
           Assign
         </button>
-        {t.status !== "IN_PROGRESS" && (
+        {t.status !== "OPEN" && (
           <button
-            onClick={() => doStatus("IN_PROGRESS")}
+            onClick={() => doStatus("OPEN")}
             className="rounded-xl bg-amber-600 px-3 py-2 text-xs font-medium text-white"
             disabled={!!busy}
           >
-            Mark In Progress
+            Mark Open
           </button>
         )}
         {t.status !== "DONE" && (
@@ -434,7 +434,7 @@ function TicketList({
 }
 
 // Tabs
-const STATUSES: TicketStatus[] = ["NEW", "IN_PROGRESS", "DONE"];
+const STATUSES: TicketStatus[] = ["NEW", "OPEN", "DONE"];
 function Tabs({
   value,
   onChange,
@@ -566,14 +566,14 @@ function CategorySelector({
 // Dashboard
 export function TicketsDashboard({ apiBase = "/_api" }: { apiBase?: string }) {
   const { items: newItems, loading: l1 } = useTickets(apiBase, "NEW");
-  const { items: progItems, loading: l2 } = useTickets(apiBase, "IN_PROGRESS");
+  const { items: progItems, loading: l2 } = useTickets(apiBase, "OPEN");
   const { items: doneItems, loading: l3 } = useTickets(apiBase, "DONE");
   const loading = l1 || l2 || l3;
 
   const counts = useMemo(
     () => ({
       NEW: newItems.length,
-      IN_PROGRESS: progItems.length,
+      OPEN: progItems.length,
       DONE: doneItems.length,
     }),
     [newItems.length, progItems.length, doneItems.length]
@@ -613,10 +613,8 @@ export function TicketsDashboard({ apiBase = "/_api" }: { apiBase?: string }) {
               <div className="mt-1 text-2xl font-bold">{counts.NEW}</div>
             </div>
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="text-xs text-gray-500">In Progress</div>
-              <div className="mt-1 text-2xl font-bold">
-                {counts.IN_PROGRESS}
-              </div>
+              <div className="text-xs text-gray-500">Open</div>
+              <div className="mt-1 text-2xl font-bold">{counts.OPEN}</div>
             </div>
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
               <div className="text-xs text-gray-500">Done</div>
