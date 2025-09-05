@@ -7,10 +7,12 @@ import Forward10Icon from "@mui/icons-material/Forward10";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import PauseRoundedIcon from "@mui/icons-material/PauseRounded";
+import { useLanguage } from "./context/LanguageContext";
 
 type Props = { src?: string | null };
 
 export default function CustomAudioPlayer({ src }: Props) {
+  const { t } = useLanguage();
   const audio = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
@@ -284,7 +286,7 @@ export default function CustomAudioPlayer({ src }: Props) {
             textAlign: "center",
           }}
         >
-          No audio file
+{t("no.audio.file")}
         </Typography>
       )}
     </Box>
