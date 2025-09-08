@@ -154,15 +154,15 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
         await patchTicket(apiBase, t.id, patchData);
         await patchStatus(apiBase, t.id, "OPEN");
         onChanged?.();
-        
+
         // Debug: Log what the ticket data looks like after assignment
-        console.log('Ticket data after assignment:', {
+        console.log("Ticket data after assignment:", {
           ticketId: t.id,
           assignee: t.assignee,
           assigneeId: t.assigneeId,
           assignees: (t as any).assignees,
           assigneeIds: (t as any).assigneeIds,
-          allTicketData: t
+          allTicketData: t,
         });
       }
     } catch (e) {
@@ -271,10 +271,17 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
       <header className="flex items-start justify-between mb-3 sm:mb-4">
         <div className="flex-1 pr-2">
           <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">
-            {t.title}
+            {`${translate("ticket.reporter")} ${t.title}`}
           </h3>
-          <div className="text-xs text-gray-500 font-medium">
-            {t.phoneNumber}
+          <div className="text-xs text-gray-500 font-medium flex items-center gap-1 hover:text-gray-700 transition-colors cursor-pointer">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+            {t.phoneNumber && t.phoneNumber.length === 4 
+              ? `EXT ${t.phoneNumber}`
+              : t.phoneNumber && t.phoneNumber.length === 10
+              ? `(${t.phoneNumber.slice(0, 3)})-${t.phoneNumber.slice(3, 6)}-${t.phoneNumber.slice(6)}`
+              : t.phoneNumber}
           </div>
         </div>
         <div className="flex items-center gap-1 sm:gap-2 ml-2">
@@ -339,7 +346,10 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
       </div>
 
       {/* Assignee info */}
-      {(t.assignee || t.assigneeId || (t as any).assignees || (t as any).assigneeIds) && (
+      {(t.assignee ||
+        t.assigneeId ||
+        (t as any).assignees ||
+        (t as any).assigneeIds) && (
         <div className="mb-4 sm:mb-5 p-2 sm:p-3 md:p-4 bg-gradient-to-r from-blue-50 to-blue-100/50 rounded-lg sm:rounded-xl border border-blue-200/60 shadow-sm">
           <div className="text-xs sm:text-sm text-blue-600 font-semibold mb-1">
             {translate("assigned.to")}
@@ -350,10 +360,12 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
               : t.assigneeId
               ? t.assigneeId
               : (t as any).assignees && (t as any).assignees.length > 0
-              ? (t as any).assignees.map((a: any) => `${a.firstName} ${a.lastName}`).join(', ')
+              ? (t as any).assignees
+                  .map((a: any) => `${a.firstName} ${a.lastName}`)
+                  .join(", ")
               : (t as any).assigneeIds && (t as any).assigneeIds.length > 0
-              ? (t as any).assigneeIds.join(', ')
-              : 'Unknown assignee'}
+              ? (t as any).assigneeIds.join(", ")
+              : "Unknown assignee"}
           </div>
         </div>
       )}
