@@ -114,6 +114,9 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
         return;
       }
 
+      // Collect all assignee IDs first
+      const assigneeIds: string[] = [];
+      
       for (const fullName of names) {
         let match = persons.find(
           (p) =>
@@ -133,38 +136,40 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
           alert(translate("assignee.not.found"));
           return;
         }
-
-        const patchData = {
-          assigneeIds: [match.id],
-          category: t.category,
-          priority: t.priority,
-          subcategory: t.subcategory,
-        };
-
-        console.log("Assigning ticket:", {
-          ticketId: t.id,
-          assigneeId: match.id,
-          assigneeName: fullName,
-          category: t.category,
-          priority: t.priority,
-          currentStatus: t.status,
-          patchData: JSON.stringify(patchData),
-        });
-
-        await patchTicket(apiBase, t.id, patchData);
-        await patchStatus(apiBase, t.id, "OPEN");
-        onChanged?.();
-
-        // Debug: Log what the ticket data looks like after assignment
-        console.log("Ticket data after assignment:", {
-          ticketId: t.id,
-          assignee: t.assignee,
-          assigneeId: t.assigneeId,
-          assignees: (t as any).assignees,
-          assigneeIds: (t as any).assigneeIds,
-          allTicketData: t,
-        });
+        assigneeIds.push(match.id);
       }
+
+      // Send all IDs together in a single API call
+      const patchData = {
+        assigneeIds: assigneeIds,
+        category: t.category,
+        priority: t.priority,
+        subcategory: t.subcategory,
+      };
+
+      console.log("Assigning ticket:", {
+        ticketId: t.id,
+        assigneeIds: assigneeIds,
+        assigneeNames: names,
+        category: t.category,
+        priority: t.priority,
+        currentStatus: t.status,
+        patchData: JSON.stringify(patchData),
+      });
+
+      await patchTicket(apiBase, t.id, patchData);
+      await patchStatus(apiBase, t.id, "OPEN");
+      onChanged?.();
+
+      // Debug: Log what the ticket data looks like after assignment
+      console.log("Ticket data after assignment:", {
+        ticketId: t.id,
+        assignee: t.assignee,
+        assigneeId: t.assigneeId,
+        assignees: (t as any).assignees,
+        assigneeIds: (t as any).assigneeIds,
+        allTicketData: t,
+      });
     } catch (e) {
       console.error("Assignment error:", e);
       alert((e as any)?.message ?? translate("error.assigning.ticket"));
@@ -274,13 +279,27 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
             {`${translate("ticket.reporter")} ${t.title}`}
           </h3>
           <div className="text-xs text-gray-500 font-medium flex items-center gap-1 hover:text-gray-700 transition-colors cursor-pointer">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            <svg
+              className="w-3 h-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+              />
             </svg>
-            {t.phoneNumber && t.phoneNumber.length === 4 
+            {t.phoneNumber && t.phoneNumber.length === 4
               ? `EXT ${t.phoneNumber}`
               : t.phoneNumber && t.phoneNumber.length === 10
-              ? `(${t.phoneNumber.slice(0, 3)})-${t.phoneNumber.slice(3, 6)}-${t.phoneNumber.slice(6)}`
+              ? `(${t.phoneNumber.slice(0, 3)})-${t.phoneNumber.slice(
+                  3,
+                  6
+                )}-${t.phoneNumber.slice(6)}`
               : t.phoneNumber}
           </div>
         </div>
