@@ -89,6 +89,7 @@ const translations: Translations = {
     "assigned.to": "Assigned to:",
     audio: "Audio",
     "no.audio.file": "No audio file available",
+    "audio.invalid": "Audio file unavailable",
 
     // Confirmations
 
@@ -103,9 +104,20 @@ const translations: Translations = {
     "new.tickets": "New Tickets",
     "open.tickets": "Open Tickets",
     "done.tickets": "Done Tickets",
-    "priority.distribution": "Priority Distribution",
+    "priority.distribution": "Priority Distribution", 
     "priority.breakdown": "Breakdown of tickets by priority level",
-    "recent.new.tickets": "Recent New Tickets",
+    "category.distribution": "Category Distribution",
+    "category.breakdown": "Breakdown of tickets by category",
+    "categories.total": "Categories",
+    "avg.per.category": "Avg per Category", 
+    "most.common": "Most Common",
+    "no.categories.found": "No categories found",
+    "assignee.distribution": "Assignee Distribution",
+    "assignee.breakdown": "Breakdown of tickets by assignee",
+    "assignees.total": "Assignees",
+    "avg.per.assignee": "Avg per Assignee",
+    "top.assignee": "Top Assignee",
+    "no.assignees.found": "No assignees found",
 
     // Configuration
     "ticket.configuration": "Ticket Configuration",
@@ -193,6 +205,7 @@ const translations: Translations = {
     "assigned.to": "Asignado a:",
     audio: "Audio",
     "no.audio.file": "No hay archivo de audio disponible",
+    "audio.invalid": "Archivo de audio no disponible",
 
     // Confirmations
     "cancel.ticket": "Cancelar Ticket",
@@ -209,8 +222,19 @@ const translations: Translations = {
     "open.tickets": "Tickets Abiertos",
     "done.tickets": "Tickets Terminados",
     "priority.distribution": "Distribución de Prioridades",
-    "priority.breakdown": "Desglose de tickets por nivel de prioridad",
-    "recent.new.tickets": "Tickets Nuevos Recientes",
+    "priority.breakdown": "Desglose de tickets por nivel de prioridad", 
+    "category.distribution": "Distribución de Categorías",
+    "category.breakdown": "Desglose de tickets por categoría",
+    "categories.total": "Categorías",
+    "avg.per.category": "Promedio por Categoría",
+    "most.common": "Más Común",
+    "no.categories.found": "No se encontraron categorías",
+    "assignee.distribution": "Distribución de Asignados",
+    "assignee.breakdown": "Desglose de tickets por asignado",
+    "assignees.total": "Asignados",
+    "avg.per.assignee": "Promedio por Asignado",
+    "top.assignee": "Top Asignado",
+    "no.assignees.found": "No se encontraron asignados",
 
     // Configuration
     "ticket.configuration": "Configuración del Ticket",

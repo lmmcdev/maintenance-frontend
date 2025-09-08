@@ -64,6 +64,13 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   async function assignByNames(fullNames: string[]) {
     try {
       setBusy("assign");
+      
+      // Validate ticket has required fields before attempting assignment
+      if (!t.category || !t.priority) {
+        alert("Complete category and priority before assigning.");
+        return;
+      }
+      
       // For now, assign to the first person selected (can be extended later)
       const fullName = fullNames[0];
       let match = persons.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase());
@@ -71,11 +78,25 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
         const res = await searchPersons(apiBase, fullName);
         match = res.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase()) || res[0];
       }
-      if (!match?.id) { alert("Assignee not found in directory."); return; }
+      if (!match?.id) { 
+        alert("Assignee not found in directory."); 
+        return; 
+      }
+      
+      console.log('Assigning ticket:', {
+        ticketId: t.id,
+        assigneeId: match.id,
+        assigneeName: fullName,
+        category: t.category,
+        priority: t.priority,
+        currentStatus: t.status
+      });
+      
       await patchTicket(apiBase, t.id, { assigneeId: match.id });
       await patchStatus(apiBase, t.id, "OPEN");
       onChanged?.();
     } catch (e) {
+      console.error('Assignment error:', e);
       alert((e as any)?.message ?? "Error assigning ticket");
     } finally {
       setBusy(null);

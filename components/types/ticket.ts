@@ -1,5 +1,14 @@
 export type TicketStatus = "NEW" | "OPEN" | "DONE";
 
+export type Attachment = {
+  id: string;
+  filename: string;
+  contentType: string;
+  size?: number;
+  url?: string;
+  uploadedAt?: string;
+};
+
 export type Ticket = {
   id: string;
   createdAt: string;
@@ -15,6 +24,8 @@ export type Ticket = {
   assignee?: Person | null;
   resolvedAt?: string | null;
   closedAt?: string | null;
+  audio?: Attachment | null;
+  // Legacy support
   audioUrl?: string | null;
 };
 

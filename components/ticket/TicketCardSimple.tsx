@@ -82,18 +82,56 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   async function assignToNames(names: string[]) {
     setBusy("assign");
     try {
+      // Validate ticket has required fields before attempting assignment
+      console.log('Ticket validation check:', {
+        ticketId: t.id,
+        category: t.category,
+        priority: t.priority,
+        subcategory: t.subcategory,
+        hasCategory: !!t.category,
+        hasPriority: !!t.priority
+      });
+      
+      if (!t.category || !t.priority) {
+        console.error('Validation failed - missing required fields');
+        alert(translate("complete.category.priority"));
+        return;
+      }
+      
       for (const fullName of names) {
         let match = persons.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase());
         if (!match) {
           const res = await searchPersons(apiBase, fullName);
           match = res.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase()) || res[0];
         }
-        if (!match?.id) { alert(translate("assignee.not.found")); return; }
-        await patchTicket(apiBase, t.id, { assigneeId: match.id });
+        if (!match?.id) { 
+          alert(translate("assignee.not.found")); 
+          return; 
+        }
+        
+        const patchData = { 
+          assignee: match.id,
+          category: t.category,
+          priority: t.priority,
+          subcategory: t.subcategory
+        };
+        
+        console.log('Assigning ticket:', {
+          ticketId: t.id,
+          assigneeId: match.id,
+          assigneeName: fullName,
+          category: t.category,
+          priority: t.priority,
+          currentStatus: t.status,
+          patchData: JSON.stringify(patchData)
+        });
+        
+        await patchTicket(apiBase, t.id, patchData);
         await patchStatus(apiBase, t.id, "OPEN");
         onChanged?.();
       }
     } catch (e) {
+      console.error('Assignment error:', e);
       alert((e as any)?.message ?? translate("error.assigning.ticket"));
     } finally {
       setBusy(null);
@@ -205,7 +243,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
             <div className="w-1.5 sm:w-2 h-4 sm:h-6 bg-[#00a1ff] rounded-full"></div>
             <h4 className="font-bold text-[#00a1ff] text-sm sm:text-base">{translate("audio")}</h4>
           </div>
-          <CustomAudioPlayer src={t.audioUrl || null} />
+          <CustomAudioPlayer src={t.audio?.url || t.audioUrl || null} />
         </div>
       </div>
 

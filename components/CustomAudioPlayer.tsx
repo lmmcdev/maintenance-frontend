@@ -83,8 +83,38 @@ export default function CustomAudioPlayer({ src }: Props) {
     seekTo(newTime);
   };
 
-  const disabled = !src;
-  const hasAudio = !!src;
+  const disabled = !src || duration === 0;
+  const hasAudio = !!src && duration > 0;
+
+  // If no source or duration is 0, show only message
+  if (!src || duration === 0) {
+    return (
+      <Box
+        sx={{
+          p: { xs: 2, sm: 2.5, md: 3 },
+          borderRadius: { xs: "10px", sm: "12px", md: "16px" },
+          bgcolor: "#f9fafb",
+          border: "1px dashed #d1d5db",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: { xs: 60, sm: 70, md: 80 },
+        }}
+      >
+        <Typography
+          variant="caption"
+          sx={{
+            color: "#9ca3af",
+            fontSize: { xs: "0.7rem", sm: "0.75rem", md: "0.8rem" },
+            fontWeight: "medium",
+            textAlign: "center",
+          }}
+        >
+          {!src ? t("no.audio.file") : t("audio.invalid")}
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -94,10 +124,10 @@ export default function CustomAudioPlayer({ src }: Props) {
         boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08), 0px 4px 12px rgba(0, 0, 0, 0.1)",
         display: "flex",
         alignItems: "center",
-        gap: { xs: 0.5, sm: 1, md: 2 },
+        gap: { xs: 0.25, sm: 1, md: 2 },
         bgcolor: "#fff",
         opacity: disabled ? 0.85 : 1,
-        flexWrap: { xs: "wrap", sm: "nowrap" },
+        flexWrap: "nowrap",
         border: "1px solid #e5e7eb",
         transition: "all 0.3s ease",
         "&:hover": {
@@ -182,23 +212,58 @@ export default function CustomAudioPlayer({ src }: Props) {
         disabled={disabled}
         sx={{
           flexGrow: 1,
-          order: { xs: 3, sm: 0 },
-          width: { xs: "100%", sm: "auto" },
-          mt: { xs: 0.5, sm: 0 },
-          mx: { xs: 0, sm: 0.5 },
+          width: "auto",
+          mx: { xs: 0.5, sm: 0.5 },
+          "& .MuiSlider-root": {
+            padding: { xs: "13px 0", sm: "15px 0", md: "17px 0" },
+          },
           "& .MuiSlider-rail": {
             color: "#e5e7eb",
-            height: { xs: 2, sm: 3, md: 4 },
+            height: { xs: 4, sm: 5, md: 6 },
+            borderRadius: { xs: 2, sm: 2.5, md: 3 },
+            background: "linear-gradient(90deg, #f8fafc 0%, #e2e8f0 100%)",
           },
           "& .MuiSlider-track": {
             color: hasAudio ? "#00a1ff" : "#d1d5db",
-            height: { xs: 2, sm: 3, md: 4 },
+            height: { xs: 4, sm: 5, md: 6 },
+            borderRadius: { xs: 2, sm: 2.5, md: 3 },
+            background: hasAudio 
+              ? "linear-gradient(90deg, #0ea5e9 0%, #00a1ff 50%, #0284c7 100%)" 
+              : "#d1d5db",
+            border: "none",
+            boxShadow: hasAudio ? "0 2px 6px rgba(0, 161, 255, 0.3)" : "none",
           },
           "& .MuiSlider-thumb": {
-            width: { xs: 8, sm: 10, md: 12 },
-            height: { xs: 8, sm: 10, md: 12 },
-            color: hasAudio ? "#00a1ff" : "#d1d5db",
-            "&:hover, &.Mui-focusVisible": { boxShadow: hasAudio ? "0 0 0 4px rgba(0, 161, 255, 0.2)" : "none" },
+            width: { xs: 14, sm: 16, md: 18 },
+            height: { xs: 14, sm: 16, md: 18 },
+            backgroundColor: hasAudio ? "#00a1ff" : "#9ca3af",
+            border: "2px solid #ffffff",
+            boxShadow: hasAudio 
+              ? "0 3px 12px rgba(0, 161, 255, 0.4), 0 0 0 1px rgba(0, 161, 255, 0.1)" 
+              : "0 2px 4px rgba(0, 0, 0, 0.1)",
+            "&:hover, &.Mui-focusVisible": { 
+              boxShadow: hasAudio 
+                ? "0 0 0 8px rgba(0, 161, 255, 0.2), 0 4px 16px rgba(0, 161, 255, 0.5)" 
+                : "0 0 0 6px rgba(107, 114, 128, 0.15)",
+              backgroundColor: hasAudio ? "#0284c7" : "#9ca3af",
+            },
+            "&:active": {
+              boxShadow: hasAudio 
+                ? "0 0 0 10px rgba(0, 161, 255, 0.25), 0 4px 20px rgba(0, 161, 255, 0.6)" 
+                : "0 0 0 8px rgba(107, 114, 128, 0.2)",
+              backgroundColor: hasAudio ? "#0369a1" : "#6b7280",
+            },
+            transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+          },
+          "&.Mui-disabled": {
+            "& .MuiSlider-thumb": {
+              backgroundColor: "#d1d5db",
+              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+            },
+            "& .MuiSlider-track": {
+              background: "#e5e7eb",
+              boxShadow: "none",
+            },
           },
         }}
       />
@@ -224,9 +289,10 @@ export default function CustomAudioPlayer({ src }: Props) {
           fontSize: { xs: "0.65rem", sm: "0.7rem" },
           fontWeight: "medium",
           color: hasAudio ? "#6b7280" : "#9ca3af",
-          order: 2,
-          minWidth: { xs: "70px", sm: "80px" },
+          minWidth: { xs: "60px", sm: "70px" },
           textAlign: "center",
+          flexShrink: 0,
+          ml: { xs: 1, sm: 1.5 },
         }}
       >
         {hasAudio ? `${formatTime(time)} / ${formatTime(duration)}` : "00:00 / 00:00"}
@@ -252,43 +318,60 @@ export default function CustomAudioPlayer({ src }: Props) {
         sx={{ 
           width: { xs: 50, sm: 60, md: 80 },
           display: { xs: "none", lg: "block" },
+          "& .MuiSlider-root": {
+            padding: "13px 0",
+          },
           "& .MuiSlider-rail": {
             color: "#e5e7eb",
-            height: { xs: 2, sm: 3 },
+            height: 4,
+            borderRadius: 2,
+            background: "linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 100%)",
           },
           "& .MuiSlider-track": {
-            color: hasAudio ? "#6b7280" : "#d1d5db",
-            height: { xs: 2, sm: 3 },
+            color: hasAudio ? "#00a1ff" : "#d1d5db",
+            height: 4,
+            borderRadius: 2,
+            background: hasAudio 
+              ? "linear-gradient(90deg, #0ea5e9 0%, #00a1ff 50%, #0284c7 100%)" 
+              : "#d1d5db",
+            border: "none",
+            boxShadow: hasAudio ? "0 2px 4px rgba(0, 161, 255, 0.3)" : "none",
           },
           "& .MuiSlider-thumb": {
-            width: { xs: 6, sm: 8 },
-            height: { xs: 6, sm: 8 },
-            "&:hover, &.Mui-focusVisible": { boxShadow: "0 0 0 4px rgba(107, 114, 128, 0.2)" },
+            width: 16,
+            height: 16,
+            backgroundColor: hasAudio ? "#00a1ff" : "#9ca3af",
+            border: "2px solid #ffffff",
+            boxShadow: hasAudio 
+              ? "0 2px 8px rgba(0, 161, 255, 0.4), 0 0 0 1px rgba(0, 161, 255, 0.1)" 
+              : "0 2px 4px rgba(0, 0, 0, 0.1)",
+            "&:hover, &.Mui-focusVisible": { 
+              boxShadow: hasAudio 
+                ? "0 0 0 6px rgba(0, 161, 255, 0.2), 0 4px 12px rgba(0, 161, 255, 0.5)" 
+                : "0 0 0 4px rgba(107, 114, 128, 0.15)",
+              backgroundColor: hasAudio ? "#0284c7" : "#9ca3af",
+            },
+            "&:active": {
+              boxShadow: hasAudio 
+                ? "0 0 0 8px rgba(0, 161, 255, 0.25), 0 4px 16px rgba(0, 161, 255, 0.6)" 
+                : "0 0 0 6px rgba(107, 114, 128, 0.2)",
+              backgroundColor: hasAudio ? "#0369a1" : "#6b7280",
+            },
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          },
+          "&.Mui-disabled": {
+            "& .MuiSlider-thumb": {
+              backgroundColor: "#d1d5db",
+              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+            },
+            "& .MuiSlider-track": {
+              background: "#e5e7eb",
+              boxShadow: "none",
+            },
           },
         }}
       />
 
-      {disabled && (
-        <Typography
-          variant="caption"
-          sx={{
-            ml: { xs: 0.5, sm: 1 },
-            px: { xs: 1, sm: 1.5, md: 2 },
-            py: { xs: 0.5, sm: 0.75 },
-            borderRadius: { xs: "6px", sm: "8px" },
-            bgcolor: "#f9fafb",
-            color: "#9ca3af",
-            border: "1px dashed #d1d5db",
-            fontSize: { xs: "0.65rem", sm: "0.7rem", md: "0.75rem" },
-            fontWeight: "medium",
-            order: { xs: 4, sm: 0 },
-            mt: { xs: 0.5, sm: 0 },
-            textAlign: "center",
-          }}
-        >
-{t("no.audio.file")}
-        </Typography>
-      )}
     </Box>
   );
 }
