@@ -10,7 +10,7 @@ import { AssignmentSelector } from "./AssignmentSelector";
 import { CancelDialog } from "./dialogs/CancelDialog";
 import { AssignmentDialog } from "./dialogs/AssignmentDialog";
 import CustomAudioPlayer from "../CustomAudioPlayer";
-import { patchTicket, patchStatus, cancelTicket, searchPersons } from "../api/ticketApi";
+import { patchTicket, patchTicketAssignees, patchStatus, cancelTicket, searchPersons } from "../api/ticketApi";
 
 function truncate(txt: string, max = 120) {
   return txt && txt.length > max ? txt.slice(0, max - 1) + "…" : txt;
@@ -71,28 +71,38 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
         return;
       }
       
-      // For now, assign to the first person selected (can be extended later)
-      const fullName = fullNames[0];
-      let match = persons.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase());
-      if (!match) {
-        const res = await searchPersons(apiBase, fullName);
-        match = res.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase()) || res[0];
-      }
-      if (!match?.id) { 
-        alert("Assignee not found in directory."); 
-        return; 
+      // Collect all assignee IDs
+      const assigneeIds: string[] = [];
+      
+      for (const fullName of fullNames) {
+        let match = persons.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase());
+        if (!match) {
+          const res = await searchPersons(apiBase, fullName);
+          match = res.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase()) || res[0];
+        }
+        if (match?.id) {
+          assigneeIds.push(match.id);
+        } else {
+          console.warn(`Assignee not found: ${fullName}`);
+        }
       }
       
-      console.log('Assigning ticket:', {
+      if (assigneeIds.length === 0) {
+        alert("No valid assignees found in directory.");
+        return;
+      }
+      
+      console.log('Assigning ticket to multiple users:', {
         ticketId: t.id,
-        assigneeId: match.id,
-        assigneeName: fullName,
+        assigneeIds,
+        assigneeNames: fullNames,
         category: t.category,
         priority: t.priority,
         currentStatus: t.status
       });
       
-      await patchTicket(apiBase, t.id, { assigneeId: match.id });
+      // Use the new patchTicketAssignees function for multiple assignees
+      await patchTicketAssignees(apiBase, t.id, assigneeIds);
       await patchStatus(apiBase, t.id, "OPEN");
       onChanged?.();
     } catch (e) {
