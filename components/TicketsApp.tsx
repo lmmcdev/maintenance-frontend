@@ -6,8 +6,8 @@ import { StickyTicketsHeader } from "./layout/StickyHeaders";
 import { TicketList } from "./ticket/TicketList";
 import { LanguageProvider } from "./context/LanguageContext";
 
-export default function TicketsApp({ apiBase = "/_api" }: { apiBase?: string }) {
-  const [status, setStatus] = useState<TicketStatus>("NEW");
+export default function TicketsApp({ apiBase = "/_api", defaultStatus = "NEW" }: { apiBase?: string; defaultStatus?: TicketStatus }) {
+  const [status, setStatus] = useState<TicketStatus>(defaultStatus);
   
   return (
     <LanguageProvider>
