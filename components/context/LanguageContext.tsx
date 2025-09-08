@@ -13,6 +13,7 @@ const translations: Translations = {
   en: {
     // Header
     tickets: "Tickets",
+    "ticket.reporter": "Reported by: ",
     dashboard: "Dashboard",
     "tickets.subtitle":
       "Create, categorize, prioritize, assign and follow up maintenance tickets.",
@@ -128,6 +129,7 @@ const translations: Translations = {
   es: {
     // Header
     tickets: "Tickets",
+    "ticket.reporter": "Reportado por: ",
     dashboard: "Panel",
     "tickets.subtitle":
       "Crear, categorizar, priorizar, asignar y dar seguimiento a tickets de mantenimiento.",
