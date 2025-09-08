@@ -154,6 +154,16 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
         await patchTicket(apiBase, t.id, patchData);
         await patchStatus(apiBase, t.id, "OPEN");
         onChanged?.();
+        
+        // Debug: Log what the ticket data looks like after assignment
+        console.log('Ticket data after assignment:', {
+          ticketId: t.id,
+          assignee: t.assignee,
+          assigneeId: t.assigneeId,
+          assignees: (t as any).assignees,
+          assigneeIds: (t as any).assigneeIds,
+          allTicketData: t
+        });
       }
     } catch (e) {
       console.error("Assignment error:", e);
@@ -329,7 +339,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
       </div>
 
       {/* Assignee info */}
-      {(t.assignee || t.assigneeId) && (
+      {(t.assignee || t.assigneeId || (t as any).assignees || (t as any).assigneeIds) && (
         <div className="mb-4 sm:mb-5 p-2 sm:p-3 md:p-4 bg-gradient-to-r from-blue-50 to-blue-100/50 rounded-lg sm:rounded-xl border border-blue-200/60 shadow-sm">
           <div className="text-xs sm:text-sm text-blue-600 font-semibold mb-1">
             {translate("assigned.to")}
@@ -337,7 +347,13 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
           <div className="text-xs sm:text-sm md:text-base font-bold text-blue-800">
             {t.assignee
               ? `${t.assignee.firstName} ${t.assignee.lastName}`
-              : t.assigneeId}
+              : t.assigneeId
+              ? t.assigneeId
+              : (t as any).assignees && (t as any).assignees.length > 0
+              ? (t as any).assignees.map((a: any) => `${a.firstName} ${a.lastName}`).join(', ')
+              : (t as any).assigneeIds && (t as any).assigneeIds.length > 0
+              ? (t as any).assigneeIds.join(', ')
+              : 'Unknown assignee'}
           </div>
         </div>
       )}
