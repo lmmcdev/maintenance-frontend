@@ -41,8 +41,7 @@ export function StatusTabs({ value, onChange }: StatusTabsProps) {
                   {s === "NEW" && <NewReleasesIcon sx={{ fontSize: { xs: 14, sm: 16, md: 18, lg: 20 } }} />}
                   {s === "OPEN" && <FlashOnIcon sx={{ fontSize: { xs: 14, sm: 16, md: 18, lg: 20 } }} />}
                   {s === "DONE" && <CheckCircleIcon sx={{ fontSize: { xs: 14, sm: 16, md: 18, lg: 20 } }} />}
-                  <span className="font-extrabold tracking-wide hidden xs:inline sm:inline">{t(`status.${s.toLowerCase()}`)}</span>
-                  <span className="font-extrabold tracking-wide xs:hidden sm:hidden">{t(`status.${s.toLowerCase()}`).slice(0, 1)}</span>
+                  <span className="font-extrabold tracking-wide">{t(`status.${s.toLowerCase()}`)}</span>
                 </span>
               </button>
             );
