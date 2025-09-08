@@ -110,10 +110,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
         }
         
         const patchData = { 
-          assignee: match.id,
-          category: t.category,
-          priority: t.priority,
-          subcategory: t.subcategory
+          assigneeId: match.id
         };
         
         console.log('Assigning ticket:', {
