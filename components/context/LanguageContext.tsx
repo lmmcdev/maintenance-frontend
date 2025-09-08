@@ -12,46 +12,48 @@ type Translations = {
 const translations: Translations = {
   en: {
     // Header
-    "tickets": "Tickets",
-    "dashboard": "Dashboard",
-    "tickets.subtitle": "Create, categorize, prioritize, assign and follow up maintenance tickets.",
+    tickets: "Tickets",
+    dashboard: "Dashboard",
+    "tickets.subtitle":
+      "Create, categorize, prioritize, assign and follow up maintenance tickets.",
     "dashboard.subtitle": "Quick overview of ticket counts and priorities.",
-    
+
     // Status
     "status.new": "NEW",
-    "status.open": "OPEN", 
+    "status.open": "OPEN",
     "status.done": "DONE",
-    
+
     // Priority
     "priority.urgent": "URGENT",
     "priority.high": "HIGH",
-    "priority.medium": "MEDIUM", 
+    "priority.medium": "MEDIUM",
     "priority.low": "LOW",
-    "priority": "Priority:",
-    
+    priority: "Priority:",
+
     // Assignment
-    "assign": "Assign:",
+    assign: "Assign:",
     "assign.to": "Select assignee(s)...",
     "reassign.to": "Reassign to...",
     "people.selected": "people selected",
-    "people": "people",
+    people: "people",
     "categories.selected": "categories selected",
     "search.people": "Search people...",
     "search.categories": "Search categories...",
     "no.people.found": "No people found",
     "no.categories.found": "No categories found",
-    "clear": "Clear",
+    clear: "Clear",
     "assign.button": "Assign",
     "reassign.button": "Reassign",
     "assignee.not.found": "Assignee not found in directory.",
-    
+
     // Category
-    "category": "Category:",
+    category: "Category:",
     "category.select": "Select category...",
-    
+
     // Dialogs
     "cancel.ticket": "Cancel Ticket",
-    "cancel.ticket.reason": "Please provide a reason for canceling this ticket:",
+    "cancel.ticket.reason":
+      "Please provide a reason for canceling this ticket:",
     "cancel.reason.placeholder": "Enter cancellation reason...",
     "assign.ticket": "Assign Ticket",
     "reassign.ticket": "Reassign Ticket",
@@ -60,8 +62,8 @@ const translations: Translations = {
     "status.change.open": "The status will change to Open.",
     "status.remain.open": "The ticket will remain in Open status.",
     "selected.assignees": "Selected assignees:",
-    "cancel": "Cancel",
-    
+    cancel: "Cancel",
+
     // Actions
     "mark.completed": "Mark as Completed",
     "close.ticket": "Close this ticket",
@@ -69,11 +71,12 @@ const translations: Translations = {
     "archive.without.completion": "Archive without completion",
     "reopen.ticket": "Reopen Ticket",
     "set.status.open": "Set status back to Open",
-    
+
     // Messages
-    "complete.category.priority": "Complete category and priority to enable assignment",
+    "complete.category.priority":
+      "Complete category and priority to enable assignment",
     "loading.tickets": "Loading tickets...",
-    "error": "Error",
+    error: "Error",
     "error.assigning.ticket": "Error assigning ticket",
     "error.marking.done": "Error marking done",
     "error.reopening": "Error reopening",
@@ -82,93 +85,79 @@ const translations: Translations = {
     "error.updating.priority": "Error updating priority",
     "no.tickets.found": "No tickets found",
     "no.tickets.moment": "There are no {status} tickets at the moment.",
-    "created": "Created:",
+    created: "Created:",
     "assigned.to": "Assigned to:",
-    "audio": "Audio",
+    audio: "Audio",
     "no.audio.file": "No audio file available",
-    
+
     // Confirmations
-    "cancel.ticket": "Cancel Ticket",
-    "cancel.ticket.reason": "Please provide a reason for canceling this ticket:",
-    "cancel.reason.placeholder": "Enter cancellation reason...",
-    "cancel.ticket.action": "Cancel Ticket",
-    "assign.ticket": "Assign Ticket",
-    "reassign.ticket": "Reassign Ticket",
-    "assign.confirm": "Are you sure you want to assign this ticket to",
-    "reassign.confirm": "Are you sure you want to reassign this ticket to",
-    "status.remain.open": "The ticket will remain in Open status.",
-    "status.change.open": "The status will change to Open.",
-    "selected.assignees": "Selected assignees:",
-    
+
     // Status descriptions
     "ready.assignment": "Ready for assignment",
     "in.progress": "In progress",
-    "completed": "Completed",
-    
+    completed: "Completed",
+
     // Actions
-    "mark.completed": "Mark as Completed",
-    "close.ticket": "Close this ticket",
-    
+
     // Dashboard
     "new.tickets": "New Tickets",
-    "open.tickets": "Open Tickets", 
+    "open.tickets": "Open Tickets",
     "done.tickets": "Done Tickets",
-    "ready.assignment": "Ready for assignment",
-    "in.progress": "In progress",
-    "completed": "Completed",
     "priority.distribution": "Priority Distribution",
     "priority.breakdown": "Breakdown of tickets by priority level",
     "recent.new.tickets": "Recent New Tickets",
-    
+
     // Configuration
     "ticket.configuration": "Ticket Configuration",
-    
+
     // Actions menu
     "ticket.actions": "Ticket actions",
-    "actions": "Actions",
+    actions: "Actions",
   },
   es: {
     // Header
-    "tickets": "Tickets",
-    "dashboard": "Panel",
-    "tickets.subtitle": "Crear, categorizar, priorizar, asignar y dar seguimiento a tickets de mantenimiento.",
+    tickets: "Tickets",
+    dashboard: "Panel",
+    "tickets.subtitle":
+      "Crear, categorizar, priorizar, asignar y dar seguimiento a tickets de mantenimiento.",
     "dashboard.subtitle": "Vista rápida del conteo de tickets y prioridades.",
-    
+
     // Status
     "status.new": "NUEVO",
     "status.open": "ABIERTO",
     "status.done": "TERMINADO",
-    
+
     // Priority
     "priority.urgent": "URGENTE",
     "priority.high": "ALTO",
     "priority.medium": "MEDIO",
     "priority.low": "BAJO",
-    "priority": "Prioridad:",
-    
+    priority: "Prioridad:",
+
     // Assignment
-    "assign": "Asignar:",
+    assign: "Asignar:",
     "assign.to": "Seleccionar asignado(s)...",
     "reassign.to": "Reasignar a...",
     "people.selected": "personas seleccionadas",
-    "people": "personas",
+    people: "personas",
     "categories.selected": "categorías seleccionadas",
     "search.people": "Buscar personas...",
     "search.categories": "Buscar categorías...",
     "no.people.found": "No se encontraron personas",
     "no.categories.found": "No se encontraron categorías",
-    "clear": "Limpiar",
+    clear: "Limpiar",
     "assign.button": "Asignar",
     "reassign.button": "Reasignar",
     "assignee.not.found": "Asignado no encontrado en el directorio.",
-    
+
     // Category
-    "category": "Categoría:",
+    category: "Categoría:",
     "category.select": "Seleccionar categoría...",
-    
+
     // Dialogs
-    "cancel.ticket": "Cancelar Ticket",
-    "cancel.ticket.reason": "Por favor proporciona una razón para cancelar este ticket:",
+    // "cancel.ticket": "Cancelar Ticket",
+    "cancel.ticket.reason":
+      "Por favor proporciona una razón para cancelar este ticket:",
     "cancel.reason.placeholder": "Ingresa la razón de cancelación...",
     "assign.ticket": "Asignar Ticket",
     "reassign.ticket": "Reasignar Ticket",
@@ -177,8 +166,8 @@ const translations: Translations = {
     "status.change.open": "El estado cambiará a Abierto.",
     "status.remain.open": "El ticket permanecerá en estado Abierto.",
     "selected.assignees": "Asignados seleccionados:",
-    "cancel": "Cancelar",
-    
+    cancel: "Cancelar",
+
     // Actions
     "mark.completed": "Marcar como Completado",
     "close.ticket": "Cerrar este ticket",
@@ -186,11 +175,12 @@ const translations: Translations = {
     "archive.without.completion": "Archivar sin completar",
     "reopen.ticket": "Reabrir Ticket",
     "set.status.open": "Cambiar estado a Abierto",
-    
+
     // Messages
-    "complete.category.priority": "Completa categoría y prioridad para habilitar asignación",
+    "complete.category.priority":
+      "Completa categoría y prioridad para habilitar asignación",
     "loading.tickets": "Cargando tickets...",
-    "error": "Error",
+    error: "Error",
     "error.assigning.ticket": "Error asignando ticket",
     "error.marking.done": "Error marcando como terminado",
     "error.reopening": "Error reabriendo",
@@ -199,50 +189,35 @@ const translations: Translations = {
     "error.updating.priority": "Error actualizando prioridad",
     "no.tickets.found": "No se encontraron tickets",
     "no.tickets.moment": "No hay tickets {status} en este momento.",
-    "created": "Creado:",
+    created: "Creado:",
     "assigned.to": "Asignado a:",
-    "audio": "Audio",
+    audio: "Audio",
     "no.audio.file": "No hay archivo de audio disponible",
-    
+
     // Confirmations
     "cancel.ticket": "Cancelar Ticket",
-    "cancel.ticket.reason": "Por favor proporciona una razón para cancelar este ticket:",
-    "cancel.reason.placeholder": "Ingresa la razón de cancelación...",
-    "cancel.ticket.action": "Cancelar Ticket",
-    "assign.ticket": "Asignar Ticket",
-    "reassign.ticket": "Reasignar Ticket",
-    "assign.confirm": "¿Estás seguro de que quieres asignar este ticket a",
-    "reassign.confirm": "¿Estás seguro de que quieres reasignar este ticket a",
-    "status.remain.open": "El ticket permanecerá en estado Abierto.",
-    "status.change.open": "El estado cambiará a Abierto.",
-    "selected.assignees": "Asignados seleccionados:",
-    
+
     // Status descriptions
     "ready.assignment": "Listos para asignar",
     "in.progress": "En progreso",
-    "completed": "Completados",
-    
+    completed: "Completados",
+
     // Actions
-    "mark.completed": "Marcar como Completado",
-    "close.ticket": "Cerrar este ticket",
-    
+
     // Dashboard
     "new.tickets": "Tickets Nuevos",
     "open.tickets": "Tickets Abiertos",
     "done.tickets": "Tickets Terminados",
-    "ready.assignment": "Listos para asignar",
-    "in.progress": "En progreso",
-    "completed": "Completados",
     "priority.distribution": "Distribución de Prioridades",
     "priority.breakdown": "Desglose de tickets por nivel de prioridad",
     "recent.new.tickets": "Tickets Nuevos Recientes",
-    
+
     // Configuration
     "ticket.configuration": "Configuración del Ticket",
-    
+
     // Actions menu
     "ticket.actions": "Acciones del ticket",
-    "actions": "Acciones",
+    actions: "Acciones",
   },
 };
 
@@ -252,7 +227,9 @@ type LanguageContextType = {
   t: (key: string, vars?: Record<string, string>) => string;
 };
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined
+);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>("en");
@@ -271,15 +248,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, [language]);
 
   const t = (key: string, vars?: Record<string, string>) => {
-    let translation = translations[language][key] || translations["en"][key] || key;
-    
+    let translation =
+      translations[language][key] || translations["en"][key] || key;
+
     // Replace variables in translation
     if (vars) {
       Object.entries(vars).forEach(([varKey, varValue]) => {
         translation = translation.replace(`{${varKey}}`, varValue);
       });
     }
-    
+
     return translation;
   };
 

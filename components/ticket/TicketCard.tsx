@@ -100,7 +100,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
     finally { setBusy(null); }
   }
 
-  const canAssign = useMemo(() => t.category && t.priority, [t.category, t.priority]);
+  const canAssign = useMemo(() => !!(t.category && t.priority), [t.category, t.priority]);
 
   const handleAssignmentChange = (names: string[]) => {
     setSelectedAssigneeNames(names);
@@ -216,7 +216,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
           onChange={handleAssignmentChange}
           disabled={!!busy}
           canAssign={canAssign}
-          isReassignment={t.status === "OPEN" && (t.assignee || t.assigneeId)}
+          isReassignment={t.status === "OPEN" && !!(t.assignee || t.assigneeId)}
           peopleList={peopleList}
         />
 
