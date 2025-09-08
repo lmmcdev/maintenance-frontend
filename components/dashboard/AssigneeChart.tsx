@@ -20,22 +20,55 @@ type AssigneeChartProps = {
 export function AssigneeChart({ tickets }: AssigneeChartProps) {
   const { t: translate } = useLanguage();
 
+  // Debug logging to see ticket data structure
+  React.useEffect(() => {
+    console.log('AssigneeChart received tickets:', tickets.map(t => ({
+      id: t.id,
+      title: t.title,
+      assignee: t.assignee,
+      assigneeId: t.assigneeId,
+      assignees: (t as any).assignees,
+      assigneeIds: (t as any).assigneeIds
+    })));
+  }, [tickets]);
+
   // Calculate assignee distribution
   const assigneeData = React.useMemo(() => {
     const assigneeCount: Record<string, number> = {};
     
     tickets.forEach(ticket => {
-      let assigneeName = "Unassigned";
+      const ticketAssignees: string[] = [];
       
+      // Handle different assignee data structures
       if (ticket.assignee) {
-        // Person object with firstName and lastName
-        assigneeName = `${ticket.assignee.firstName} ${ticket.assignee.lastName}`.trim();
+        // Single Person object with firstName and lastName
+        ticketAssignees.push(`${ticket.assignee.firstName} ${ticket.assignee.lastName}`.trim());
       } else if (ticket.assigneeId) {
-        // Just ID string
-        assigneeName = ticket.assigneeId;
+        // Single ID string
+        ticketAssignees.push(ticket.assigneeId);
+      } else if ((ticket as any).assignees && Array.isArray((ticket as any).assignees)) {
+        // Array of Person objects
+        (ticket as any).assignees.forEach((assignee: any) => {
+          if (assignee.firstName && assignee.lastName) {
+            ticketAssignees.push(`${assignee.firstName} ${assignee.lastName}`.trim());
+          } else if (assignee.id) {
+            ticketAssignees.push(assignee.id);
+          }
+        });
+      } else if ((ticket as any).assigneeIds && Array.isArray((ticket as any).assigneeIds)) {
+        // Array of ID strings
+        ticketAssignees.push(...(ticket as any).assigneeIds);
       }
       
-      assigneeCount[assigneeName] = (assigneeCount[assigneeName] || 0) + 1;
+      // If no assignees found, mark as unassigned
+      if (ticketAssignees.length === 0) {
+        ticketAssignees.push("Unassigned");
+      }
+      
+      // Count each assignee for this ticket
+      ticketAssignees.forEach(assigneeName => {
+        assigneeCount[assigneeName] = (assigneeCount[assigneeName] || 0) + 1;
+      });
     });
 
     return Object.entries(assigneeCount)
