@@ -33,6 +33,11 @@ export function PriorityChart({ priorities }: PriorityChartProps) {
     const centerY = 100;
     const radius = 80;
     
+    // Special case for full circle (100%)
+    if (endAngle - startAngle >= 360) {
+      return `M ${centerX - radius} ${centerY} A ${radius} ${radius} 0 1 1 ${centerX + radius} ${centerY} A ${radius} ${radius} 0 1 1 ${centerX - radius} ${centerY} Z`;
+    }
+    
     const startAngleRad = (startAngle - 90) * Math.PI / 180;
     const endAngleRad = (endAngle - 90) * Math.PI / 180;
     
