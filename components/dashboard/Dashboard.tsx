@@ -8,6 +8,7 @@ import { PriorityChart } from "./PriorityChart";
 import { CategoryChart } from "./CategoryChart";
 import { AssigneeChart } from "./AssigneeChart";
 import { LanguageProvider } from "../context/LanguageContext";
+import { StaticDataProvider } from "../context/StaticDataContext";
 
 export function TicketsDashboard({ apiBase = "/_api" }: { apiBase?: string }) {
   const { items: newItems, loading: l1 } = useTickets(apiBase, "NEW");
@@ -29,9 +30,10 @@ export function TicketsDashboard({ apiBase = "/_api" }: { apiBase?: string }) {
 
   return (
     <LanguageProvider>
-      <div className="min-h-dvh bg-gradient-to-br from-gray-50 to-gray-100 relative">
-        <StickyDashboardHeader />
-        {loading ? (
+      <StaticDataProvider apiBase={apiBase}>
+        <div className="min-h-dvh bg-gradient-to-br from-gray-50 to-gray-100 relative">
+          <StickyDashboardHeader />
+          {loading ? (
           <div className="p-2 sm:p-4 md:p-6 lg:p-8 animate-pulse space-y-2 sm:space-y-3 md:space-y-4 max-w-screen-xl mx-auto">
             <div className="h-16 sm:h-20 md:h-24 rounded-xl sm:rounded-2xl bg-gray-200" />
             <div className="h-16 sm:h-20 md:h-24 rounded-xl sm:rounded-2xl bg-gray-200" />
@@ -48,6 +50,7 @@ export function TicketsDashboard({ apiBase = "/_api" }: { apiBase?: string }) {
           </div>
         )}
       </div>
+      </StaticDataProvider>
     </LanguageProvider>
   );
 }

@@ -2,9 +2,9 @@
 
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { Ticket } from "../types/ticket";
-import { useCategories } from "../hooks/useCategories";
 import { patchTicket } from "../api/ticketApi";
 import { useLanguage } from "../context/LanguageContext";
+import { useStaticData } from "../context/StaticDataContext";
 
 type CategorySelectorProps = {
   t: Ticket;
@@ -22,7 +22,7 @@ export function CategorySelector({
   onOpenChange,
 }: CategorySelectorProps) {
   const { t: translate } = useLanguage();
-  const { cats } = useCategories(apiBase);
+  const { categories } = useStaticData();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedName, setSelectedName] = useState<string>("");
@@ -33,13 +33,13 @@ export function CategorySelector({
 
   const allSubcategories = useMemo(() => {
     const subcats: string[] = [];
-    cats.forEach((category) => {
+    categories.forEach((category) => {
       category.subcats.forEach((subcat) => {
         subcats.push(subcat.displayName);
       });
     });
     return subcats;
-  }, [cats]);
+  }, [categories]);
 
   const filteredCategories = allSubcategories.filter((category) =>
     category.toLowerCase().includes(searchTerm.toLowerCase())
@@ -84,7 +84,7 @@ export function CategorySelector({
       // Find the subcategory object
       let subcategoryToAssign: { name: string; displayName: string } | null = null;
 
-      cats.forEach((category) => {
+      categories.forEach((category) => {
         const foundSubcat = category.subcats.find(
           (sc) => sc.displayName === categoryName
         );
