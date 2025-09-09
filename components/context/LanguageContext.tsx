@@ -23,6 +23,7 @@ const translations: Translations = {
     "status.new": "NEW",
     "status.open": "OPEN",
     "status.done": "DONE",
+    "status.cancelled": "CANCELLED",
 
     // Priority
     "priority.urgent": "URGENT",
@@ -150,6 +151,7 @@ const translations: Translations = {
     "status.new": "NUEVO",
     "status.open": "ABIERTO",
     "status.done": "TERMINADO",
+    "status.cancelled": "CANCELADO",
 
     // Priority
     "priority.urgent": "URGENTE",
