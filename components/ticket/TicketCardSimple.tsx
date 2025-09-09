@@ -58,7 +58,6 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -106,7 +105,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
 
       // Collect all assignee IDs first
       const assigneeIds: string[] = [];
-      
+
       for (const fullName of names) {
         let match = persons.find(
           (p) =>
@@ -192,7 +191,6 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
     }
   }
 
-
   const canAssign = useMemo(
     () => t.category && t.priority,
     [t.category, t.priority]
@@ -238,13 +236,15 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   const handleCancelTicket = async () => {
     if (!cancelNote.trim()) return;
     setShowCancelDialog(false);
-    try { 
-      setBusy("cancel"); 
-      await cancelTicket(apiBase, t.id, { reason: cancelNote.trim() }); 
-      onChanged?.(); 
+    try {
+      setBusy("cancel");
+      await cancelTicket(apiBase, t.id, { reason: cancelNote.trim() });
+      onChanged?.();
+    } catch (e) {
+      alert((e as any)?.message ?? "Error canceling");
+    } finally {
+      setBusy(null);
     }
-    catch (e) { alert((e as any)?.message ?? "Error canceling"); }
-    finally { setBusy(null); }
     setCancelNote("");
   };
 
@@ -301,10 +301,22 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                   disabled={!!busy}
                   className="px-2 sm:px-3 py-1 sm:py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center gap-1"
                 >
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-3 h-3 sm:w-4 sm:h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
-                  <span className="hidden sm:inline">{translate("mark.completed")}</span>
+                  <span className="hidden sm:inline">
+                    {translate("mark.completed")}
+                  </span>
                 </button>
               )}
               {t.status === "DONE" && (
@@ -313,10 +325,22 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                   disabled={!!busy}
                   className="px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center gap-1"
                 >
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <svg
+                    className="w-3 h-3 sm:w-4 sm:h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
                   </svg>
-                  <span className="hidden sm:inline">{translate("reopen.ticket")}</span>
+                  <span className="hidden sm:inline">
+                    {translate("reopen.ticket")}
+                  </span>
                 </button>
               )}
               {t.status !== "DONE" && (
@@ -325,34 +349,48 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                   disabled={!!busy}
                   className="px-2 sm:px-3 py-1 sm:py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center gap-1"
                 >
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-3 h-3 sm:w-4 sm:h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
-                  <span className="hidden sm:inline">{translate("cancel.ticket.action")}</span>
+                  <span className="hidden sm:inline">
+                    {translate("cancel.ticket.action")}
+                  </span>
                 </button>
               )}
             </>
           )}
-          
+
           <button
             onClick={() => setShowNotesDialog(true)}
             className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors group"
             title="View/Add Notes"
           >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 group-hover:text-[#00A1FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 group-hover:text-[#00A1FF]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
           </button>
-          <KebabMenu
-            state={t.status}
-            onMarkDone={markDone}
-            onReopen={reopen}
-            onCancel={() => setShowCancelDialog(true)}
-            disabled={!!busy}
-          />
         </div>
       </header>
-
 
       {/* Description */}
       <div className="text-xs sm:text-sm md:text-base text-gray-700 mb-3 sm:mb-4 leading-relaxed">
@@ -371,7 +409,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
               </h4>
             </div>
           )}
-          
+
           {/* Created info */}
           <div className="flex items-center gap-2 sm:gap-3">
             <svg
@@ -388,12 +426,16 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
               />
             </svg>
             <div>
-              <span className="text-xs text-gray-500 font-medium">{translate("created")}: </span>
-              <span className="text-xs sm:text-sm text-gray-700 font-semibold">{fmtDate(t.createdAt)}</span>
+              <span className="text-xs text-gray-500 font-medium">
+                {translate("created")}:{" "}
+              </span>
+              <span className="text-xs sm:text-sm text-gray-700 font-semibold">
+                {fmtDate(t.createdAt)}
+              </span>
             </div>
           </div>
         </div>
-        
+
         {/* Audio player - more compact */}
         {(t.audio?.url || t.audioUrl) && (
           <div className="mt-1.5 sm:mt-2">
@@ -697,7 +739,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
           </div>
         </div>
       )}
-      
+
       <NotesDialog
         show={showNotesDialog}
         ticketId={t.id}
