@@ -4,7 +4,7 @@ export async function patchTicket(
   apiBase: string,
   id: string,
   body: Partial<{
-    assigneeId: string;
+    assigneeIds: string[];
     priority: Ticket["priority"];
     category: string;
     subcategory: { name: string; displayName: string } | string | null;
@@ -88,30 +88,30 @@ export async function patchTicketAssignees(
   assigneeIds: string[]
 ) {
   const url = `${apiBase}/api/v1/tickets/${id}`;
-  
+
   console.log("Updating ticket assignees:", {
     url,
     ticketId: id,
-    assigneeIds
+    assigneeIds,
   });
 
   const res = await fetch(url, {
     method: "PATCH",
-    headers: { 
-      "Content-Type": "application/json" 
+    headers: {
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify({ 
-      assigneeIds: assigneeIds 
+    body: JSON.stringify({
+      assigneeIds: assigneeIds,
     }),
   });
-  
+
   if (!res.ok) {
     let errorMessage = `Update assignees failed: HTTP ${res.status}`;
-    
+
     try {
       const errorData = await res.json();
       console.error("Backend error response:", errorData);
-      
+
       if (typeof errorData === "string") {
         errorMessage = `${errorMessage} - ${errorData}`;
       } else if (errorData.message) {
@@ -125,7 +125,7 @@ export async function patchTicketAssignees(
       console.error("Could not parse error response:", parseError);
       errorMessage = `${errorMessage} - Unable to parse error response`;
     }
-    
+
     switch (res.status) {
       case 400:
         errorMessage += " (Bad Request: Check assignee IDs format)";
@@ -137,17 +137,17 @@ export async function patchTicketAssignees(
         errorMessage += " (Validation failed: Invalid assignee IDs)";
         break;
     }
-    
+
     console.error("Patch ticket assignees error:", {
       ticketId: id,
       assigneeIds,
       status: res.status,
       url,
     });
-    
+
     throw new Error(errorMessage);
   }
-  
+
   const result = await res.json();
   console.log("Successfully updated ticket assignees:", result);
   return result;

@@ -5,18 +5,21 @@ import { TicketStatus } from "./types/ticket";
 import { StickyTicketsHeader } from "./layout/StickyHeaders";
 import { TicketList } from "./ticket/TicketList";
 import { LanguageProvider } from "./context/LanguageContext";
+import { StaticDataProvider } from "./context/StaticDataContext";
 
-export default function TicketsApp({ apiBase = "/_api" }: { apiBase?: string }) {
-  const [status, setStatus] = useState<TicketStatus>("NEW");
+export default function TicketsApp({ apiBase = "/_api", defaultStatus = "NEW" }: { apiBase?: string; defaultStatus?: TicketStatus }) {
+  const [status, setStatus] = useState<TicketStatus>(defaultStatus);
   
   return (
     <LanguageProvider>
-      <div className="min-h-dvh bg-gradient-to-br from-gray-50 to-gray-100 relative">
-        <StickyTicketsHeader status={status} onChange={setStatus} />
-        <main className="py-2 sm:py-3 md:py-4 lg:py-6">
-          <TicketList apiBase={apiBase} status={status} />
-        </main>
-      </div>
+      <StaticDataProvider apiBase={apiBase}>
+        <div className="min-h-dvh bg-gradient-to-br from-gray-50 to-gray-100 relative">
+          <StickyTicketsHeader status={status} onChange={setStatus} />
+          <main className="py-2 sm:py-3 md:py-4 lg:py-6">
+            <TicketList apiBase={apiBase} status={status} />
+          </main>
+        </div>
+      </StaticDataProvider>
     </LanguageProvider>
   );
 }

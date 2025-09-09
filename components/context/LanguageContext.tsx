@@ -258,8 +258,19 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>("en");
 
-  // Load language from localStorage
+  // Load language from URL params or localStorage
   useEffect(() => {
+    // Check URL params first
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlLang = urlParams.get("lang") as Language;
+      if (urlLang && (urlLang === "en" || urlLang === "es")) {
+        setLanguage(urlLang);
+        return;
+      }
+    }
+    
+    // Fallback to localStorage
     const savedLang = localStorage.getItem("language") as Language;
     if (savedLang && (savedLang === "en" || savedLang === "es")) {
       setLanguage(savedLang);

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from 'next/navigation';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import FlashOnIcon from '@mui/icons-material/FlashOn';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -15,12 +16,20 @@ type StatBoxesProps = {
 };
 
 export function StatBoxes({ counts }: StatBoxesProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const router = useRouter();
+  
+  const handleNavigation = (path: string) => {
+    router.push(`${path}?lang=${language}`);
+  };
   
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
       {/* New Tickets */}
-      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-pink-50 via-white to-pink-50/30 p-3 sm:p-4 md:p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl group" style={{ boxShadow: '0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)' }}>
+      <div 
+        onClick={() => handleNavigation('/tickets/new')}
+        className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-pink-50 via-white to-pink-50/30 p-3 sm:p-4 md:p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl group cursor-pointer" 
+        style={{ boxShadow: '0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)' }}>
         <div className="absolute top-0 left-0 w-full h-1 sm:h-1.5 bg-gradient-to-r from-pink-400 to-pink-600"></div>
         <div className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 w-12 sm:w-16 md:w-20 h-12 sm:h-16 md:h-20 bg-pink-100/20 rounded-full opacity-50 group-hover:opacity-70 transition-opacity"></div>
         <div className="relative z-10">
@@ -38,7 +47,10 @@ export function StatBoxes({ counts }: StatBoxesProps) {
       </div>
 
       {/* Open Tickets */}
-      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-50 via-white to-amber-50/30 p-3 sm:p-4 md:p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl group" style={{ boxShadow: '0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)' }}>
+      <div 
+        onClick={() => handleNavigation('/tickets/open')}
+        className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-50 via-white to-amber-50/30 p-3 sm:p-4 md:p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl group cursor-pointer" 
+        style={{ boxShadow: '0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)' }}>
         <div className="absolute top-0 left-0 w-full h-1 sm:h-1.5 bg-gradient-to-r from-amber-400 to-amber-600"></div>
         <div className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 w-12 sm:w-16 md:w-20 h-12 sm:h-16 md:h-20 bg-amber-100/20 rounded-full opacity-50 group-hover:opacity-70 transition-opacity"></div>
         <div className="relative z-10">
@@ -56,7 +68,10 @@ export function StatBoxes({ counts }: StatBoxesProps) {
       </div>
 
       {/* Done Tickets */}
-      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-teal-50 via-white to-teal-50/30 p-3 sm:p-4 md:p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl group" style={{ boxShadow: '0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)' }}>
+      <div 
+        onClick={() => handleNavigation('/tickets/done')}
+        className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-teal-50 via-white to-teal-50/30 p-3 sm:p-4 md:p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl group cursor-pointer" 
+        style={{ boxShadow: '0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)' }}>
         <div className="absolute top-0 left-0 w-full h-1 sm:h-1.5 bg-gradient-to-r from-teal-400 to-teal-600"></div>
         <div className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 w-12 sm:w-16 md:w-20 h-12 sm:h-16 md:h-20 bg-teal-100/20 rounded-full opacity-50 group-hover:opacity-70 transition-opacity"></div>
         <div className="relative z-10">

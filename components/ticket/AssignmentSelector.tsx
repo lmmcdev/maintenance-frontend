@@ -109,18 +109,24 @@ export function AssignmentSelector({
             {/* People list */}
             <div className="max-h-48 overflow-y-auto">
               {filteredPeople.map((person, index) => (
-                <label
+                <div
                   key={person}
-                  className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                  onClick={() => handlePersonToggle(person)}
+                  className={`flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 cursor-pointer transition-colors duration-150 ${
+                    selectedNames.includes(person) ? 'bg-[#00A1FF]/10 hover:bg-[#00A1FF]/20' : 'hover:bg-gray-50'
+                  }`}
                 >
                   <input
                     type="checkbox"
                     checked={selectedNames.includes(person)}
                     onChange={() => handlePersonToggle(person)}
+                    onClick={(e) => e.stopPropagation()}
                     className="w-4 h-4 text-[#00A1FF] border-gray-300 rounded focus:ring-[#00A1FF]/20 focus:ring-2"
                   />
-                  <span className="text-xs sm:text-sm text-gray-700 flex-1">{person}</span>
-                </label>
+                  <span className={`text-xs sm:text-sm flex-1 ${
+                    selectedNames.includes(person) ? 'text-[#00A1FF] font-medium' : 'text-gray-700'
+                  }`}>{person}</span>
+                </div>
               ))}
               
               {filteredPeople.length === 0 && (
