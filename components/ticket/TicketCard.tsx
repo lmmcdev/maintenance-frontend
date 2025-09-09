@@ -110,11 +110,6 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
     finally { setBusy(null); }
   }
 
-  async function cancel() {
-    try { setBusy("cancel"); await cancelTicket(apiBase, t.id); onChanged?.(); }
-    catch (e) { alert((e as any)?.message ?? "Error canceling"); }
-    finally { setBusy(null); }
-  }
 
   const canAssign = useMemo(() => !!(t.category && t.priority), [t.category, t.priority]);
 
@@ -146,7 +141,13 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   const handleCancelTicket = async () => {
     if (cancelNote.trim()) {
       setShowCancelDialog(false);
-      await cancel();
+      try { 
+        setBusy("cancel"); 
+        await cancelTicket(apiBase, t.id, { reason: cancelNote.trim() }); 
+        onChanged?.(); 
+      }
+      catch (e) { alert((e as any)?.message ?? "Error canceling"); }
+      finally { setBusy(null); }
       setCancelNote("");
     }
   };
