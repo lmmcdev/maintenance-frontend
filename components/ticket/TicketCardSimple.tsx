@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { createPortal } from "react-dom";
+//import { createPortal } from "react-dom";
 import { TicketStatus, Ticket } from "../types/ticket";
 import { StatusBadge } from "./StatusBadge";
 import { KebabMenu } from "./KebabMenu";
@@ -250,23 +250,25 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
 
   return (
     <article
-      className="rounded-xl sm:rounded-2xl border border-gray-200/60 bg-white p-3 sm:p-4 md:p-6 lg:p-8 shadow-lg sm:shadow-2xl transition-all duration-300 hover:scale-[1.01] sm:hover:scale-[1.02] backdrop-blur-sm relative"
+      className="rounded-xl sm:rounded-2xl border border-gray-200/60 bg-white p-3 sm:p-4 md:p-6 lg:p-8 shadow-lg sm:shadow-2xl transition-all duration-300 hover:scale-[1.01] sm:hover:scale-[1.02] backdrop-blur-sm relative overflow-hidden"
       style={{
         boxShadow:
           "0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)",
-        zIndex: isAssignDropdownOpen || isCategoryDropdownOpen ? 10 : "auto",
+        zIndex: isAssignDropdownOpen || isCategoryDropdownOpen ? 50 : "auto",
       }}
     >
       {/* Header */}
       <header className="flex items-start justify-between mb-3 sm:mb-4">
         <div className="flex-1 pr-2">
-          <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+          <div className="flex flex-col gap-2 mb-1 sm:mb-2">
+            <div className="flex justify-start">
+              <StatusBadge status={t.status} />
+            </div>
             <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 leading-tight">
               {`${translate("ticket.reporter")} ${t.title}`}
             </h3>
-            <StatusBadge status={t.status} />
           </div>
-          <div className="text-xs text-gray-500 font-medium flex items-center gap-1 hover:text-gray-700 transition-colors cursor-pointer">
+          <div className="text-xs sm:text-sm text-gray-500 font-medium flex items-center gap-1 hover:text-gray-700 transition-colors cursor-pointer">
             <svg
               className="w-3 h-3"
               fill="none"
@@ -299,7 +301,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                 <button
                   onClick={markDone}
                   disabled={!!busy}
-                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center gap-1"
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-green-50 to-green-100/50 text-green-700 border border-green-200/60 rounded-lg hover:from-green-100 hover:to-green-200/50 hover:border-green-300/60 hover:text-green-800 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all duration-300 text-xs font-semibold shadow-sm hover:shadow-md flex items-center gap-1"
                 >
                   <svg
                     className="w-3 h-3 sm:w-4 sm:h-4"
@@ -314,7 +316,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span className="hidden sm:inline">
+                  <span className="text-xs sm:text-sm">
                     {translate("mark.completed")}
                   </span>
                 </button>
@@ -323,7 +325,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                 <button
                   onClick={reopen}
                   disabled={!!busy}
-                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center gap-1"
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-50 to-blue-100/50 text-blue-700 border border-blue-200/60 rounded-lg hover:from-blue-100 hover:to-blue-200/50 hover:border-blue-300/60 hover:text-blue-800 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all duration-300 text-xs font-semibold shadow-sm hover:shadow-md flex items-center gap-1"
                 >
                   <svg
                     className="w-3 h-3 sm:w-4 sm:h-4"
@@ -338,7 +340,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                     />
                   </svg>
-                  <span className="hidden sm:inline">
+                  <span className="text-xs sm:text-sm">
                     {translate("reopen.ticket")}
                   </span>
                 </button>
@@ -347,7 +349,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                 <button
                   onClick={() => setShowCancelDialog(true)}
                   disabled={!!busy}
-                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center gap-1"
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-red-50 to-red-100/50 text-red-700 border border-red-200/60 rounded-lg hover:from-red-100 hover:to-red-200/50 hover:border-red-300/60 hover:text-red-800 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all duration-300 text-xs font-semibold shadow-sm hover:shadow-md flex items-center gap-1"
                 >
                   <svg
                     className="w-3 h-3 sm:w-4 sm:h-4"
@@ -362,7 +364,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                       d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span className="hidden sm:inline">
+                  <span className="text-xs sm:text-sm">
                     {translate("cancel.ticket.action")}
                   </span>
                 </button>
@@ -372,11 +374,11 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
 
           <button
             onClick={() => setShowNotesDialog(true)}
-            className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors group"
+            className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-gray-50 to-gray-100/50 text-gray-700 border border-gray-200/60 rounded-lg hover:from-gray-100 hover:to-gray-200/50 hover:border-gray-300/60 hover:text-gray-800 transition-all duration-300 text-xs font-semibold shadow-sm hover:shadow-md flex items-center gap-1"
             title="View/Add Notes"
           >
             <svg
-              className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 group-hover:text-[#00A1FF]"
+              className="w-3 h-3 sm:w-4 sm:h-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -388,6 +390,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
+            <span className="text-xs sm:text-sm">Notes</span>
           </button>
         </div>
       </header>
@@ -397,52 +400,29 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
         {truncate(t.description, 160)}
       </div>
 
-      {/* Creation date and Audio */}
-      <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200/60">
-        <div className="flex items-center justify-between gap-4">
-          {/* Audio info */}
-          {(t.audio?.url || t.audioUrl) && (
-            <div className="flex items-center gap-1 sm:gap-2">
-              <div className="w-1.5 sm:w-2 h-4 sm:h-6 bg-[#00a1ff] rounded-full"></div>
-              <h4 className="font-bold text-[#00a1ff] text-xs sm:text-sm">
-                {translate("audio")}
-              </h4>
-            </div>
-          )}
 
-          {/* Created info */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <svg
-              className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            <div>
-              <span className="text-xs text-gray-500 font-medium">
-                {translate("created")}:{" "}
-              </span>
-              <span className="text-xs sm:text-sm text-gray-700 font-semibold">
-                {fmtDate(t.createdAt)}
-              </span>
+      {/* Audio Section */}
+      {(t.audio?.url || t.audioUrl) && (
+        <div className="mb-4 sm:mb-5">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 rounded-lg sm:rounded-xl border border-blue-200/60 p-2 sm:p-3 md:p-4 shadow-sm">
+            <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 xs:gap-3 mb-3">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <div className="w-1.5 sm:w-2 h-4 sm:h-6 bg-[#00a1ff] rounded-full"></div>
+                <h4 className="font-bold text-[#00a1ff] text-sm sm:text-base">Audio</h4>
+              </div>
+              <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-500">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="font-medium text-xs sm:text-sm md:text-base">Created {fmtDate(t.createdAt)}</span>
+              </div>
+            </div>
+            <div className="min-w-0">
+              <CustomAudioPlayer src={t.audio?.url || t.audioUrl || null} />
             </div>
           </div>
         </div>
-
-        {/* Audio player - more compact */}
-        {(t.audio?.url || t.audioUrl) && (
-          <div className="mt-1.5 sm:mt-2">
-            <CustomAudioPlayer src={t.audio?.url || t.audioUrl || null} />
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Assignee info */}
       {(t.assignee ||
@@ -472,7 +452,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
       {/* Ticket Configuration */}
       <div className="mb-4 sm:mb-5">
         <div
-          className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 space-y-3 sm:space-y-4"
+          className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 space-y-3 sm:space-y-4 min-w-0"
           style={{
             boxShadow:
               "0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)",
@@ -501,21 +481,21 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
           {/* Multi-Assignment Section */}
           <div className="relative" ref={dropdownRef}>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-              <span className="text-gray-600 text-xs sm:text-sm min-w-[48px] sm:min-w-[64px] font-semibold">
+              <span className="text-gray-600 text-xs sm:text-sm md:text-base min-w-[48px] sm:min-w-[64px] md:min-w-[72px] font-semibold">
                 {translate("assign")}
               </span>
-              <div className="flex-1 relative">
+              <div className="flex-1 relative min-w-0">
                 <button
                   onClick={() => setIsAssignDropdownOpen(!isAssignDropdownOpen)}
                   disabled={!!busy}
-                  className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-300 hover:border-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed flex items-center justify-between"
+                  className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-300 hover:border-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed flex items-center justify-between overflow-hidden"
                 >
                   <span
-                    className={
+                    className={`truncate mr-2 ${
                       selectedAssigneeNames.length === 0
                         ? "text-gray-500"
                         : "text-gray-900"
-                    }
+                    }`}
                   >
                     {selectedAssigneeNames.length === 0
                       ? translate("assign.to")
@@ -545,7 +525,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                 {/* Dropdown */}
                 {isAssignDropdownOpen && !busy && (
                   <div
-                    className="absolute z-[9999] w-full mt-1 bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-2xl max-h-64 overflow-hidden"
+                    className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-2xl max-h-64 overflow-hidden"
                     style={{
                       boxShadow:
                         "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",

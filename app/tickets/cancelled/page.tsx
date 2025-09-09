@@ -17,7 +17,7 @@ function CancelledTicketsContent({ apiBase }: { apiBase?: string }) {
       {/* Header */}
       <div className="sticky top-0 z-50">
         <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200/50" style={{ boxShadow: '0px 4px 12px rgba(239, 241, 246, 0.6)' }}>
-          <div className="mx-auto max-w-screen-xl px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3">
+          <div className="mx-auto max-w-screen-xl px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-3">
             <Link 
               href="/tickets"
               className="inline-flex items-center gap-2 text-gray-600 hover:text-[#00A1FF] transition-colors"
@@ -30,7 +30,7 @@ function CancelledTicketsContent({ apiBase }: { apiBase?: string }) {
         
         {/* Cancelled Tickets Banner */}
         <div className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg">
-          <div className="max-w-screen-xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5">
+          <div className="max-w-screen-xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5">
             <div className="flex items-center gap-2 sm:gap-3">
               <CancelIcon sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />
               <div>

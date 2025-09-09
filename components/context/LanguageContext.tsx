@@ -129,8 +129,11 @@ const translations: Translations = {
 
     // Notes
     "notes.title": "Ticket Notes",
+    "notes.subtitle": "View and manage ticket notes",
+    "notes.history": "Notes History",
     "notes.loading": "Loading notes...",
     "notes.empty": "No notes yet",
+    "notes.empty.subtitle": "Add your first note below",
     "notes.add.title": "Add New Note",
     "notes.add.placeholder": "Enter your note...",
     "notes.add.button": "Add Note",
@@ -258,8 +261,11 @@ const translations: Translations = {
 
     // Notes
     "notes.title": "Notas del Ticket",
+    "notes.subtitle": "Ver y gestionar notas del ticket",
+    "notes.history": "Historial de Notas",
     "notes.loading": "Cargando notas...",
     "notes.empty": "Sin notas aún",
+    "notes.empty.subtitle": "Agrega tu primera nota abajo",
     "notes.add.title": "Agregar Nueva Nota",
     "notes.add.placeholder": "Ingresa tu nota...",
     "notes.add.button": "Agregar Nota",

@@ -44,7 +44,7 @@ export function LanguageToggle() {
           </svg>
         </div>
         <span className="font-bold hidden xs:inline sm:inline">EN</span>
-        <span className="font-bold xs:hidden sm:hidden text-[10px]">EN</span>
+        <span className="font-bold xs:hidden sm:hidden text-xs">EN</span>
       </button>
       
       <button
@@ -73,7 +73,7 @@ export function LanguageToggle() {
           </svg>
         </div>
         <span className="font-bold hidden xs:inline sm:inline">ES</span>
-        <span className="font-bold xs:hidden sm:hidden text-[10px]">ES</span>
+        <span className="font-bold xs:hidden sm:hidden text-xs">ES</span>
       </button>
     </div>
   );

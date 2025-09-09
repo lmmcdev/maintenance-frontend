@@ -119,40 +119,42 @@ export default function CustomAudioPlayer({ src }: Props) {
   return (
     <Box
       sx={{
-        p: { xs: 0.5, sm: 0.75, md: 1 },
+        p: { xs: 0.4, sm: 0.75, md: 1 },
         borderRadius: { xs: "6px", sm: "8px", md: "10px" },
-        boxShadow: "0px 1px 4px rgba(0, 0, 0, 0.06), 0px 2px 6px rgba(0, 0, 0, 0.08)",
+        boxShadow: "none",
         display: "flex",
         alignItems: "center",
-        gap: { xs: 0.25, sm: 0.5, md: 1 },
+        gap: { xs: 0.2, sm: 0.5, md: 1 },
         bgcolor: "#fff",
         opacity: disabled ? 0.85 : 1,
         flexWrap: "nowrap",
         border: "1px solid #e5e7eb",
         transition: "all 0.2s ease",
-        minHeight: { xs: 32, sm: 36, md: 40 },
+        minHeight: { xs: 28, sm: 36, md: 40 },
+        maxWidth: "100%",
+        overflow: "hidden",
         "&:hover": {
-          boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1), 0px 4px 12px rgba(0, 0, 0, 0.12)",
+          boxShadow: "none",
         },
       }}
     >
       {/* skip/play group */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.25, sm: 0.5, md: 1 } }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.1, sm: 0.5, md: 1 }, flexShrink: 0 }}>
         <IconButton 
           onClick={() => skip(-10)} 
           size="small" 
           disabled={disabled}
-          sx={{ p: { xs: 0.25, sm: 0.25, md: 0.5 } }}
+          sx={{ p: { xs: 0.1, sm: 0.25, md: 0.5 } }}
         >
-          <Replay10Icon sx={{ fontSize: { xs: 14, sm: 16, md: 18 }, color: hasAudio ? "inherit" : "#d1d5db" }} />
+          <Replay10Icon sx={{ fontSize: { xs: 12, sm: 16, md: 18 }, color: hasAudio ? "inherit" : "#d1d5db" }} />
         </IconButton>
 
         <IconButton
           onClick={() => setPlaying((p) => !p)}
           size="small"
           sx={{ 
-            width: { xs: 20, sm: 24, md: 28 }, 
-            height: { xs: 20, sm: 24, md: 28 }, 
+            width: { xs: 18, sm: 24, md: 28 }, 
+            height: { xs: 18, sm: 24, md: 28 }, 
             color: hasAudio ? "#111629" : "#d1d5db",
             "&:hover": {
               transform: hasAudio ? "scale(1.05)" : "none",
@@ -162,9 +164,9 @@ export default function CustomAudioPlayer({ src }: Props) {
           disabled={disabled}
         >
           {playing ? (
-            <PauseRoundedIcon sx={{ fontSize: { xs: 18, sm: 22, md: 26 }, color: hasAudio ? "#111629" : "#d1d5db" }} />
+            <PauseRoundedIcon sx={{ fontSize: { xs: 16, sm: 22, md: 26 }, color: hasAudio ? "#111629" : "#d1d5db" }} />
           ) : (
-            <PlayArrowRoundedIcon sx={{ fontSize: { xs: 18, sm: 22, md: 26 }, color: hasAudio ? "#111629" : "#d1d5db" }} />
+            <PlayArrowRoundedIcon sx={{ fontSize: { xs: 16, sm: 22, md: 26 }, color: hasAudio ? "#111629" : "#d1d5db" }} />
           )}
         </IconButton>
 
@@ -172,9 +174,9 @@ export default function CustomAudioPlayer({ src }: Props) {
           onClick={() => skip(10)} 
           size="small" 
           disabled={disabled}
-          sx={{ p: { xs: 0.25, sm: 0.25, md: 0.5 } }}
+          sx={{ p: { xs: 0.1, sm: 0.25, md: 0.5 } }}
         >
-          <Forward10Icon sx={{ fontSize: { xs: 14, sm: 16, md: 18 }, color: hasAudio ? "inherit" : "#d1d5db" }} />
+          <Forward10Icon sx={{ fontSize: { xs: 12, sm: 16, md: 18 }, color: hasAudio ? "inherit" : "#d1d5db" }} />
         </IconButton>
       </Box>
 
@@ -213,56 +215,63 @@ export default function CustomAudioPlayer({ src }: Props) {
         sx={{
           flexGrow: 1,
           width: "auto",
-          mx: { xs: 0.5, sm: 0.5 },
+          mx: { xs: 0.5, sm: 0.75, md: 1 },
           "& .MuiSlider-root": {
-            padding: { xs: "13px 0", sm: "15px 0", md: "17px 0" },
+            padding: { xs: "14px 0", sm: "16px 0", md: "18px 0" },
           },
           "& .MuiSlider-rail": {
             color: "#e5e7eb",
-            height: { xs: 4, sm: 5, md: 6 },
-            borderRadius: { xs: 2, sm: 2.5, md: 3 },
-            background: "linear-gradient(90deg, #f8fafc 0%, #e2e8f0 100%)",
+            height: 4,
+            borderRadius: 2,
+            background: "linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 100%)",
           },
           "& .MuiSlider-track": {
             color: hasAudio ? "#00a1ff" : "#d1d5db",
-            height: { xs: 4, sm: 5, md: 6 },
-            borderRadius: { xs: 2, sm: 2.5, md: 3 },
+            height: 4,
+            borderRadius: 2,
             background: hasAudio 
               ? "linear-gradient(90deg, #0ea5e9 0%, #00a1ff 50%, #0284c7 100%)" 
               : "#d1d5db",
             border: "none",
-            boxShadow: hasAudio ? "0 2px 6px rgba(0, 161, 255, 0.3)" : "none",
+            boxShadow: hasAudio ? "0 2px 4px rgba(0, 161, 255, 0.3)" : "none",
           },
           "& .MuiSlider-thumb": {
-            width: { xs: 14, sm: 16, md: 18 },
-            height: { xs: 14, sm: 16, md: 18 },
+            width: 16,
+            height: 16,
             backgroundColor: hasAudio ? "#00a1ff" : "#9ca3af",
             border: "2px solid #ffffff",
             boxShadow: hasAudio 
-              ? "0 3px 12px rgba(0, 161, 255, 0.4), 0 0 0 1px rgba(0, 161, 255, 0.1)" 
+              ? "0 2px 8px rgba(0, 161, 255, 0.4), 0 0 0 1px rgba(0, 161, 255, 0.1)" 
               : "0 2px 4px rgba(0, 0, 0, 0.1)",
             "&:hover, &.Mui-focusVisible": { 
               boxShadow: hasAudio 
-                ? "0 0 0 8px rgba(0, 161, 255, 0.2), 0 4px 16px rgba(0, 161, 255, 0.5)" 
-                : "0 0 0 6px rgba(107, 114, 128, 0.15)",
+                ? "0 0 0 6px rgba(0, 161, 255, 0.2), 0 4px 12px rgba(0, 161, 255, 0.5)" 
+                : "0 0 0 4px rgba(107, 114, 128, 0.15)",
               backgroundColor: hasAudio ? "#0284c7" : "#9ca3af",
             },
             "&:active": {
               boxShadow: hasAudio 
-                ? "0 0 0 10px rgba(0, 161, 255, 0.25), 0 4px 20px rgba(0, 161, 255, 0.6)" 
-                : "0 0 0 8px rgba(107, 114, 128, 0.2)",
+                ? "0 0 0 8px rgba(0, 161, 255, 0.25), 0 4px 16px rgba(0, 161, 255, 0.6)" 
+                : "0 0 0 6px rgba(107, 114, 128, 0.2)",
               backgroundColor: hasAudio ? "#0369a1" : "#6b7280",
             },
-            transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
           },
           "&.Mui-disabled": {
             "& .MuiSlider-thumb": {
-              backgroundColor: "#d1d5db",
-              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#e5e7eb",
+              border: "2px solid #f3f4f6",
+              boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+              "&:before": {
+                backgroundColor: "transparent",
+              },
             },
             "& .MuiSlider-track": {
               background: "#e5e7eb",
               boxShadow: "none",
+              "&::before": {
+                background: "none",
+              },
             },
           },
         }}
@@ -286,13 +295,13 @@ export default function CustomAudioPlayer({ src }: Props) {
         variant="caption" 
         sx={{ 
           display: { xs: "block", md: "none" },
-          fontSize: { xs: "0.65rem", sm: "0.7rem" },
+          fontSize: { xs: "0.6rem", sm: "0.7rem" },
           fontWeight: "medium",
           color: hasAudio ? "#6b7280" : "#9ca3af",
-          minWidth: { xs: "60px", sm: "70px" },
+          minWidth: { xs: "50px", sm: "65px" },
           textAlign: "center",
           flexShrink: 0,
-          ml: { xs: 1, sm: 1.5 },
+          ml: { xs: 0.5, sm: 1 },
         }}
       >
         {hasAudio ? `${formatTime(time)} / ${formatTime(duration)}` : "00:00 / 00:00"}
@@ -316,8 +325,9 @@ export default function CustomAudioPlayer({ src }: Props) {
         onChange={(_, v) => setVolume(v as number)}
         disabled={disabled}
         sx={{ 
-          width: { xs: 40, sm: 50, md: 70 },
+          width: { xs: 30, sm: 35, md: 45 },
           display: { xs: "none", lg: "block" },
+          mr: { xs: 1.5, sm: 2, md: 2.5 },
           "& .MuiSlider-root": {
             padding: "13px 0",
           },

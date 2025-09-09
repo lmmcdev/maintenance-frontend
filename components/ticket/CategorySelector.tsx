@@ -118,7 +118,7 @@ export function CategorySelector({
       <span className="text-gray-600 text-xs sm:text-sm min-w-[48px] sm:min-w-[64px] font-semibold">
         {translate("category")}
       </span>
-      <div className="flex-1 relative" ref={containerRef}>
+      <div className="flex-1 relative min-w-0" ref={containerRef}>
         {/* Main button - identical to AssignmentSelector */}
         <button
           onClick={() => {
@@ -141,7 +141,7 @@ export function CategorySelector({
             }
           }}
           disabled={busy}
-          className="w-full rounded-lg sm:rounded-xl border-2 px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm font-medium outline-none transition-all duration-300 bg-white hover:border-[#00A1FF]/30 focus:border-[#00A1FF] focus:ring-2 focus:ring-[#00A1FF]/10 shadow-sm hover:shadow-md focus:shadow-lg text-left flex items-center justify-between disabled:bg-gray-50 disabled:border-gray-200 disabled:cursor-not-allowed disabled:text-gray-400 border-gray-300 text-gray-700"
+          className="w-full rounded-lg sm:rounded-xl border-2 px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm font-medium outline-none transition-all duration-300 bg-white hover:border-[#00A1FF]/30 focus:border-[#00A1FF] focus:ring-2 focus:ring-[#00A1FF]/10 shadow-sm hover:shadow-md focus:shadow-lg text-left flex items-center justify-between disabled:bg-gray-50 disabled:border-gray-200 disabled:cursor-not-allowed disabled:text-gray-400 border-gray-300 text-gray-700 max-w-full overflow-hidden"
         >
           <span>{selectedName || translate("category.select")}</span>
           <svg
@@ -170,7 +170,7 @@ export function CategorySelector({
         {/* Dropdown - identical to AssignmentSelector */}
         {isOpen && !busy && (
           <div
-            className={`absolute z-[9999] w-full bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-2xl max-h-60 overflow-hidden ${
+            className={`absolute z-50 w-full bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-2xl max-h-60 overflow-hidden ${
               dropdownPosition === "up" ? "bottom-full mb-1" : "top-full mt-1"
             }`}
             style={{

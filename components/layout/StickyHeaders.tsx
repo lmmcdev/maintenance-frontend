@@ -4,7 +4,6 @@ import React from "react";
 import Link from "next/link";
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
-import CancelIcon from '@mui/icons-material/Cancel';
 import { TicketStatus } from "../types/ticket";
 import { StatusTabs } from "./StatusTabs";
 import { LanguageToggle } from "../ui/LanguageToggle";
@@ -13,7 +12,7 @@ import { useLanguage } from "../context/LanguageContext";
 function FullWidthBanner({ title, subtitle, kind }: { title: string; subtitle: string; kind: "tickets" | "dashboard" }) {
   return (
     <div className="w-full bg-gradient-to-r from-[#00A1FF] to-[#0081cc] text-white shadow-lg">
-      <div className="max-w-screen-xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-6 lg:py-8">
+      <div className="max-w-screen-xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
             {kind === "dashboard" ? <DashboardOutlinedIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22, lg: 24 } }} /> : <AssignmentOutlinedIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22, lg: 24 } }} />}
@@ -36,13 +35,13 @@ export function StickyTicketsHeader({ status, onChange }: { status: TicketStatus
       <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200/50" style={{ boxShadow: '0px 4px 12px rgba(239, 241, 246, 0.6)' }}>
         <div className="mx-auto flex max-w-screen-xl">
           <div className="flex-1">
-            <div className="relative block w-full px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm md:text-base lg:text-lg font-bold text-[#00A1FF] bg-gradient-to-t from-blue-50 to-white">
-              <div className="absolute inset-x-2 sm:inset-x-4 md:inset-x-6 lg:inset-x-8 bottom-0 h-0.5 sm:h-1 bg-[#00A1FF] rounded-t-sm"></div>
+            <div className="relative block w-full px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-3 md:py-4 text-center text-xs sm:text-sm md:text-base lg:text-lg font-bold text-[#00A1FF] bg-gradient-to-t from-blue-50 to-white">
+              <div className="absolute inset-x-3 sm:inset-x-4 md:inset-x-6 lg:inset-x-8 bottom-0 h-0.5 sm:h-1 bg-[#00A1FF] rounded-t-sm"></div>
               {t("tickets")}
             </div>
           </div>
           <div className="flex-1">
-            <Link href="/dashboard" className="relative block w-full px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-600 hover:text-[#00A1FF] hover:bg-gray-50/50 transition-all duration-300">
+            <Link href="/dashboard" className="relative block w-full px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-3 md:py-4 text-center text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-600 hover:text-[#00A1FF] hover:bg-gray-50/50 transition-all duration-300">
               {t("dashboard")}
             </Link>
           </div>
@@ -54,19 +53,6 @@ export function StickyTicketsHeader({ status, onChange }: { status: TicketStatus
         subtitle={t("tickets.subtitle")}
       />
       <StatusTabs value={status} onChange={onChange} />
-      
-      {/* Cancelled tickets link */}
-      <div className="bg-white/90 backdrop-blur-md border-b border-gray-200/50 px-2 sm:px-3 md:px-4 lg:px-6 py-2">
-        <div className="max-w-screen-xl mx-auto">
-          <Link 
-            href="/tickets/cancelled"
-            className="inline-flex items-center gap-2 px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-          >
-            <CancelIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />
-            <span className="font-medium">{t("status.cancelled")}</span>
-          </Link>
-        </div>
-      </div>
     </div>
   );
 }
@@ -79,13 +65,13 @@ export function StickyDashboardHeader() {
       <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200/50" style={{ boxShadow: '0px 4px 12px rgba(239, 241, 246, 0.6)' }}>
         <div className="mx-auto flex max-w-screen-xl">
           <div className="flex-1">
-            <Link href="/tickets" className="relative block w-full px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-600 hover:text-[#00A1FF] hover:bg-gray-50/50 transition-all duration-300">
+            <Link href="/tickets" className="relative block w-full px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-3 md:py-4 text-center text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-600 hover:text-[#00A1FF] hover:bg-gray-50/50 transition-all duration-300">
               {t("tickets")}
             </Link>
           </div>
           <div className="flex-1">
-            <div className="relative block w-full px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm md:text-base lg:text-lg font-bold text-[#00A1FF] bg-gradient-to-t from-blue-50 to-white">
-              <div className="absolute inset-x-2 sm:inset-x-4 md:inset-x-6 lg:inset-x-8 bottom-0 h-0.5 sm:h-1 bg-[#00A1FF] rounded-t-sm"></div>
+            <div className="relative block w-full px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-3 md:py-4 text-center text-xs sm:text-sm md:text-base lg:text-lg font-bold text-[#00A1FF] bg-gradient-to-t from-blue-50 to-white">
+              <div className="absolute inset-x-3 sm:inset-x-4 md:inset-x-6 lg:inset-x-8 bottom-0 h-0.5 sm:h-1 bg-[#00A1FF] rounded-t-sm"></div>
               {t("dashboard")}
             </div>
           </div>

@@ -41,7 +41,7 @@ function AssignSelect({
 
   return (
     <select
-      className="rounded-xl border border-gray-300 px-3 py-2 text-xs"
+      className="rounded-xl border border-gray-300 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm w-full"
       value={value}
       onChange={handleChange}
       onFocus={() => {
