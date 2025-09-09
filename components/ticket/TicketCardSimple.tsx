@@ -260,9 +260,12 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
       {/* Header */}
       <header className="flex items-start justify-between mb-3 sm:mb-4">
         <div className="flex-1 pr-2">
-          <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">
-            {`${translate("ticket.reporter")} ${t.title}`}
-          </h3>
+          <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+            <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 leading-tight">
+              {`${translate("ticket.reporter")} ${t.title}`}
+            </h3>
+            <StatusBadge status={t.status} />
+          </div>
           <div className="text-xs text-gray-500 font-medium flex items-center gap-1 hover:text-gray-700 transition-colors cursor-pointer">
             <svg
               className="w-3 h-3"
@@ -289,7 +292,48 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
           </div>
         </div>
         <div className="flex items-center gap-1 sm:gap-2 ml-2">
-          <StatusBadge status={t.status} />
+          {/* Quick Action Buttons */}
+          {t.status !== "CANCELLED" && (
+            <>
+              {t.status === "OPEN" && (
+                <button
+                  onClick={markDone}
+                  disabled={!!busy}
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center gap-1"
+                >
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="hidden sm:inline">{translate("mark.completed")}</span>
+                </button>
+              )}
+              {t.status === "DONE" && (
+                <button
+                  onClick={reopen}
+                  disabled={!!busy}
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center gap-1"
+                >
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span className="hidden sm:inline">{translate("reopen.ticket")}</span>
+                </button>
+              )}
+              {t.status !== "DONE" && (
+                <button
+                  onClick={() => setShowCancelDialog(true)}
+                  disabled={!!busy}
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center gap-1"
+                >
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="hidden sm:inline">{translate("cancel.ticket.action")}</span>
+                </button>
+              )}
+            </>
+          )}
+          
           <button
             onClick={() => setShowNotesDialog(true)}
             className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors group"
@@ -309,47 +353,6 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
         </div>
       </header>
 
-      {/* Quick Action Buttons */}
-      {t.status !== "CANCELLED" && (
-        <div className="flex gap-2 mb-3 sm:mb-4">
-          {t.status === "OPEN" && (
-            <button
-              onClick={markDone}
-              disabled={!!busy}
-              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs sm:text-sm font-medium shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{translate("mark.completed")}</span>
-            </button>
-          )}
-          {t.status === "DONE" && (
-            <button
-              onClick={reopen}
-              disabled={!!busy}
-              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs sm:text-sm font-medium shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>{translate("reopen.ticket")}</span>
-            </button>
-          )}
-          {t.status !== "DONE" && (
-            <button
-              onClick={() => setShowCancelDialog(true)}
-              disabled={!!busy}
-              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs sm:text-sm font-medium shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{translate("cancel.ticket.action")}</span>
-            </button>
-          )}
-        </div>
-      )}
 
       {/* Description */}
       <div className="text-xs sm:text-sm md:text-base text-gray-700 mb-3 sm:mb-4 leading-relaxed">
