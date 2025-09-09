@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
-import { TicketStatus, Ticket, Person } from "../types/ticket";
+import React, { useState, useMemo } from "react";
+import { TicketStatus, Ticket } from "../types/ticket";
 import { StatusBadge } from "./StatusBadge";
 import { KebabMenu } from "./KebabMenu";
 import { CategorySelector } from "./CategorySelector";
@@ -11,6 +11,7 @@ import { CancelDialog } from "./dialogs/CancelDialog";
 import { AssignmentDialog } from "./dialogs/AssignmentDialog";
 import CustomAudioPlayer from "../CustomAudioPlayer";
 import { patchTicket, patchTicketAssignees, patchStatus, cancelTicket, searchPersons } from "../api/ticketApi";
+import { useStaticData } from "../context/StaticDataContext";
 
 function truncate(txt: string, max = 120) {
   return txt && txt.length > max ? txt.slice(0, max - 1) + "…" : txt;
@@ -33,33 +34,14 @@ type TicketCardProps = {
 
 export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   const [busy, setBusy] = useState<string | null>(null);
-  const [persons, setPersons] = useState<Person[]>([]);
   const [selectedAssigneeNames, setSelectedAssigneeNames] = useState<string[]>([]);
   const [showAssignConfirmation, setShowAssignConfirmation] = useState(false);
   const [pendingAssignment, setPendingAssignment] = useState<{names: string[], isReassign: boolean}>({names: [], isReassign: false});
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelNote, setCancelNote] = useState("");
-
-  const peopleList = useMemo(() => {
-    const exact = [
-      "Juan Carlos Gonzalez",
-      "Eugenio Suarez",
-      "Elpidio Davila",
-      "Roger Membreno",
-      "Lino Munoz",
-      "Ariel Caballero",
-      "Ramon Aguilera",
-      "Raul Garcia",
-      "Carlos Pena",
-    ];
-    return [...exact].sort((a,b)=>a.localeCompare(b));
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      try { setPersons(await searchPersons(apiBase, "")); } catch { setPersons([]); }
-    })();
-  }, [apiBase]);
+  
+  // Use static data from context
+  const { persons, peopleList } = useStaticData();
 
   async function assignByNames(fullNames: string[]) {
     try {
@@ -75,15 +57,18 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
       const assigneeIds: string[] = [];
       
       for (const fullName of fullNames) {
-        let match = persons.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase());
-        if (!match) {
-          const res = await searchPersons(apiBase, fullName);
-          match = res.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase()) || res[0];
-        }
+        const match = persons.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase());
         if (match?.id) {
           assigneeIds.push(match.id);
         } else {
-          console.warn(`Assignee not found: ${fullName}`);
+          // Try searching if not in cached data
+          const res = await searchPersons(apiBase, fullName);
+          const searchMatch = res.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase()) || res[0];
+          if (searchMatch?.id) {
+            assigneeIds.push(searchMatch.id);
+          } else {
+            console.warn(`Assignee not found: ${fullName}`);
+          }
         }
       }
       

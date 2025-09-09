@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { TicketStatus, Ticket, Person } from "../types/ticket";
+import { TicketStatus, Ticket } from "../types/ticket";
 import { StatusBadge } from "./StatusBadge";
 import { KebabMenu } from "./KebabMenu";
 import CustomAudioPlayer from "../CustomAudioPlayer";
@@ -15,6 +15,7 @@ import {
   searchPersons,
 } from "../api/ticketApi";
 import { useLanguage } from "../context/LanguageContext";
+import { useStaticData } from "../context/StaticDataContext";
 
 function truncate(txt: string, max = 120) {
   return txt && txt.length > max ? txt.slice(0, max - 1) + "…" : txt;
@@ -37,10 +38,10 @@ type TicketCardProps = {
 
 export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   const { t: translate } = useLanguage();
+  const { persons, peopleList: staticPeopleList } = useStaticData();
   const [busy, setBusy] = useState<
     "done" | "open" | "cancel" | "assign" | "category" | "priority" | null
   >(null);
-  const [persons, setPersons] = useState<Person[]>([]);
   const [selectedAssigneeNames, setSelectedAssigneeNames] = useState<string[]>(
     []
   );
@@ -55,17 +56,6 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    async function fetchPersons() {
-      try {
-        const list = await searchPersons(apiBase, "");
-        setPersons(list);
-      } catch {
-        setPersons([]);
-      }
-    }
-    fetchPersons();
-  }, [apiBase]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -83,9 +73,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
     }
   }, [isAssignDropdownOpen]);
 
-  const peopleList = useMemo(() => {
-    return persons.map((p) => `${p.firstName} ${p.lastName}`);
-  }, [persons]);
+  const peopleList = staticPeopleList;
 
   const handlePersonToggle = (fullName: string) => {
     setSelectedAssigneeNames((prev) =>
