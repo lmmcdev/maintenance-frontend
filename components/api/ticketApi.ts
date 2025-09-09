@@ -1,5 +1,11 @@
 import { Ticket, Person } from "../types/ticket";
 
+interface CancelTicketParams {
+  reason?: string;
+  cancelledBy?: string;
+  cancelledByName?: string;
+}
+
 export async function patchTicket(
   apiBase: string,
   id: string,
@@ -156,7 +162,7 @@ export async function patchTicketAssignees(
 export async function patchStatus(
   apiBase: string,
   id: string,
-  status: "OPEN" | "DONE"
+  status: "OPEN" | "DONE" | "CANCELLED"
 ) {
   const res = await fetch(`${apiBase}/api/v1/tickets/${id}/status`, {
     method: "PATCH",
@@ -167,16 +173,28 @@ export async function patchStatus(
   return res.json();
 }
 
-export async function cancelTicket(apiBase: string, id: string) {
+export async function cancelTicket(
+  apiBase: string,
+  id: string,
+  params?: CancelTicketParams
+) {
+  const body = params ? {
+    reason: params.reason,
+    cancelledBy: params.cancelledBy,
+    cancelledByName: params.cancelledByName
+  } : {};
+
   const res = await fetch(`${apiBase}/api/v1/tickets/${id}/cancel`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
+  
   if (!res.ok) {
-    // fallback: si tu backend no tiene cancel, lo marcamos DONE como placeholder
-    await patchStatus(apiBase, id, "DONE");
+    // fallback: si tu backend no tiene cancel, lo marcamos CANCELLED como placeholder
+    await patchStatus(apiBase, id, "CANCELLED");
   }
-  return true;
+  return res.ok ? res.json() : true;
 }
 
 export async function searchPersons(
@@ -188,4 +206,29 @@ export async function searchPersons(
   if (!res.ok) throw new Error(`People search failed: HTTP ${res.status}`);
   const json = await res.json();
   return json?.data?.items ?? [];
+}
+
+export async function getTicketNotes(apiBase: string, ticketId: string) {
+  const res = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`);
+  if (!res.ok) throw new Error(`Get notes failed: HTTP ${res.status}`);
+  return res.json();
+}
+
+export async function addTicketNote(
+  apiBase: string,
+  ticketId: string,
+  note: {
+    content: string;
+    type?: string;
+    createdBy?: string;
+    createdByName?: string;
+  }
+) {
+  const res = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(note),
+  });
+  if (!res.ok) throw new Error(`Add note failed: HTTP ${res.status}`);
+  return res.json();
 }

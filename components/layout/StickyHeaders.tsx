@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { TicketStatus } from "../types/ticket";
 import { StatusTabs } from "./StatusTabs";
 import { LanguageToggle } from "../ui/LanguageToggle";
@@ -53,6 +54,19 @@ export function StickyTicketsHeader({ status, onChange }: { status: TicketStatus
         subtitle={t("tickets.subtitle")}
       />
       <StatusTabs value={status} onChange={onChange} />
+      
+      {/* Cancelled tickets link */}
+      <div className="bg-white/90 backdrop-blur-md border-b border-gray-200/50 px-2 sm:px-3 md:px-4 lg:px-6 py-2">
+        <div className="max-w-screen-xl mx-auto">
+          <Link 
+            href="/tickets/cancelled"
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+          >
+            <CancelIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />
+            <span className="font-medium">{t("status.cancelled")}</span>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

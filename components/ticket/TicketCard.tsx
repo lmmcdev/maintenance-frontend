@@ -9,9 +9,11 @@ import { PriorityRow } from "./PriorityRow";
 import { AssignmentSelector } from "./AssignmentSelector";
 import { CancelDialog } from "./dialogs/CancelDialog";
 import { AssignmentDialog } from "./dialogs/AssignmentDialog";
+import { NotesDialog } from "./dialogs/NotesDialog";
 import CustomAudioPlayer from "../CustomAudioPlayer";
 import { patchTicket, patchTicketAssignees, patchStatus, cancelTicket, searchPersons } from "../api/ticketApi";
 import { useStaticData } from "../context/StaticDataContext";
+import { useLanguage } from "../context/LanguageContext";
 
 function truncate(txt: string, max = 120) {
   return txt && txt.length > max ? txt.slice(0, max - 1) + "…" : txt;
@@ -39,9 +41,11 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   const [pendingAssignment, setPendingAssignment] = useState<{names: string[], isReassign: boolean}>({names: [], isReassign: false});
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelNote, setCancelNote] = useState("");
+  const [showNotesDialog, setShowNotesDialog] = useState(false);
   
   // Use static data from context
   const { persons, peopleList } = useStaticData();
+  const { t: translate } = useLanguage();
 
   async function assignByNames(fullNames: string[]) {
     try {
@@ -110,11 +114,6 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
     finally { setBusy(null); }
   }
 
-  async function cancel() {
-    try { setBusy("cancel"); await cancelTicket(apiBase, t.id); onChanged?.(); }
-    catch (e) { alert((e as any)?.message ?? "Error canceling"); }
-    finally { setBusy(null); }
-  }
 
   const canAssign = useMemo(() => !!(t.category && t.priority), [t.category, t.priority]);
 
@@ -146,7 +145,13 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   const handleCancelTicket = async () => {
     if (cancelNote.trim()) {
       setShowCancelDialog(false);
-      await cancel();
+      try { 
+        setBusy("cancel"); 
+        await cancelTicket(apiBase, t.id, { reason: cancelNote.trim() }); 
+        onChanged?.(); 
+      }
+      catch (e) { alert((e as any)?.message ?? "Error canceling"); }
+      finally { setBusy(null); }
       setCancelNote("");
     }
   };
@@ -155,9 +160,62 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
     <article className="rounded-xl sm:rounded-2xl border border-gray-200/60 bg-white p-3 sm:p-4 md:p-6 lg:p-8 shadow-lg sm:shadow-2xl transition-all duration-300 hover:scale-[1.01] sm:hover:scale-[1.02] backdrop-blur-sm" style={{ boxShadow: '0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)' }}>
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4">
-        <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold leading-tight text-gray-900 order-2 sm:order-1">{t.title}</h3>
-        <div className="flex items-center justify-between sm:justify-end gap-2 order-1 sm:order-2">
+        <div className="flex items-center gap-2 sm:gap-3 order-2 sm:order-1">
+          <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold leading-tight text-gray-900">{t.title}</h3>
           <StatusBadge status={t.status} />
+        </div>
+        <div className="flex items-center justify-between sm:justify-end gap-2 order-1 sm:order-2">
+          {/* Quick Action Buttons */}
+          {t.status !== "CANCELLED" && (
+            <>
+              {t.status === "OPEN" && (
+                <button
+                  onClick={markDone}
+                  disabled={!!busy}
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center gap-1"
+                >
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="hidden sm:inline">{translate("mark.completed")}</span>
+                </button>
+              )}
+              {t.status === "DONE" && (
+                <button
+                  onClick={reopen}
+                  disabled={!!busy}
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center gap-1"
+                >
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span className="hidden sm:inline">{translate("reopen.ticket")}</span>
+                </button>
+              )}
+              {t.status !== "DONE" && (
+                <button
+                  onClick={() => setShowCancelDialog(true)}
+                  disabled={!!busy}
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center gap-1"
+                >
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="hidden sm:inline">{translate("cancel.ticket.action")}</span>
+                </button>
+              )}
+            </>
+          )}
+          
+          <button
+            onClick={() => setShowNotesDialog(true)}
+            className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors group"
+            title="View/Add Notes"
+          >
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 group-hover:text-[#00A1FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </button>
           <KebabMenu
             state={t.status}
             onMarkDone={markDone}
@@ -168,29 +226,39 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
         </div>
       </header>
 
+
       {/* Description */}
       <div className="text-xs sm:text-sm md:text-base text-gray-700 mb-3 sm:mb-4 leading-relaxed">{truncate(t.description, 160)}</div>
       
-      {/* Creation date */}
-      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200/60">
-        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        <div>
-          <div className="text-xs text-gray-500 font-medium">Created:</div>
-          <div className="text-xs sm:text-sm text-gray-700 font-semibold">{fmtDate(t.createdAt)}</div>
-        </div>
-      </div>
-
-      {/* Audio player */}
-      <div className="mb-4 sm:mb-5">
-        <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4" style={{ boxShadow: '0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)' }}>
-          <div className="flex items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
-            <div className="w-1.5 sm:w-2 h-4 sm:h-6 bg-[#00a1ff] rounded-full"></div>
-            <h4 className="font-bold text-[#00a1ff] text-sm sm:text-base">Audio</h4>
+      {/* Creation date and Audio */}
+      <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200/60">
+        <div className="flex items-center justify-between gap-4">
+          {/* Audio info */}
+          {(t.audioUrl) && (
+            <div className="flex items-center gap-1 sm:gap-2">
+              <div className="w-1.5 sm:w-2 h-4 sm:h-6 bg-[#00a1ff] rounded-full"></div>
+              <h4 className="font-bold text-[#00a1ff] text-xs sm:text-sm">Audio</h4>
+            </div>
+          )}
+          
+          {/* Created info */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <div>
+              <span className="text-xs text-gray-500 font-medium">Created: </span>
+              <span className="text-xs sm:text-sm text-gray-700 font-semibold">{fmtDate(t.createdAt)}</span>
+            </div>
           </div>
-          <CustomAudioPlayer src={t.audioUrl || null} />
         </div>
+        
+        {/* Audio player - more compact */}
+        {(t.audioUrl) && (
+          <div className="mt-1.5 sm:mt-2">
+            <CustomAudioPlayer src={t.audioUrl || null} />
+          </div>
+        )}
       </div>
 
       {/* Assignee info */}
@@ -264,6 +332,13 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
         isReassign={pendingAssignment.isReassign}
         onCancel={handleCancelAssignment}
         onConfirm={handleConfirmAssignment}
+      />
+      
+      <NotesDialog
+        show={showNotesDialog}
+        ticketId={t.id}
+        apiBase={apiBase}
+        onClose={() => setShowNotesDialog(false)}
       />
     </article>
   );

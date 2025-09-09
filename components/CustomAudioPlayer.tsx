@@ -119,20 +119,20 @@ export default function CustomAudioPlayer({ src }: Props) {
   return (
     <Box
       sx={{
-        p: { xs: 1, sm: 1.5, md: 2 },
-        borderRadius: { xs: "10px", sm: "12px", md: "16px" },
-        boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08), 0px 4px 12px rgba(0, 0, 0, 0.1)",
+        p: { xs: 0.5, sm: 0.75, md: 1 },
+        borderRadius: { xs: "6px", sm: "8px", md: "10px" },
+        boxShadow: "0px 1px 4px rgba(0, 0, 0, 0.06), 0px 2px 6px rgba(0, 0, 0, 0.08)",
         display: "flex",
         alignItems: "center",
-        gap: { xs: 0.25, sm: 1, md: 2 },
+        gap: { xs: 0.25, sm: 0.5, md: 1 },
         bgcolor: "#fff",
         opacity: disabled ? 0.85 : 1,
         flexWrap: "nowrap",
         border: "1px solid #e5e7eb",
-        transition: "all 0.3s ease",
+        transition: "all 0.2s ease",
+        minHeight: { xs: 32, sm: 36, md: 40 },
         "&:hover": {
-          boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.12), 0px 8px 20px rgba(0, 0, 0, 0.15)",
-          transform: "translateY(-1px)",
+          boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1), 0px 4px 12px rgba(0, 0, 0, 0.12)",
         },
       }}
     >
@@ -142,29 +142,29 @@ export default function CustomAudioPlayer({ src }: Props) {
           onClick={() => skip(-10)} 
           size="small" 
           disabled={disabled}
-          sx={{ p: { xs: 0.25, sm: 0.5, md: 1 } }}
+          sx={{ p: { xs: 0.25, sm: 0.25, md: 0.5 } }}
         >
-          <Replay10Icon sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, color: hasAudio ? "inherit" : "#d1d5db" }} />
+          <Replay10Icon sx={{ fontSize: { xs: 14, sm: 16, md: 18 }, color: hasAudio ? "inherit" : "#d1d5db" }} />
         </IconButton>
 
         <IconButton
           onClick={() => setPlaying((p) => !p)}
           size="small"
           sx={{ 
-            width: { xs: 24, sm: 28, md: 32 }, 
-            height: { xs: 24, sm: 28, md: 32 }, 
+            width: { xs: 20, sm: 24, md: 28 }, 
+            height: { xs: 20, sm: 24, md: 28 }, 
             color: hasAudio ? "#111629" : "#d1d5db",
             "&:hover": {
-              transform: hasAudio ? "scale(1.1)" : "none",
+              transform: hasAudio ? "scale(1.05)" : "none",
               bgcolor: hasAudio ? "#f3f4f6" : "transparent",
             },
           }}
           disabled={disabled}
         >
           {playing ? (
-            <PauseRoundedIcon sx={{ fontSize: { xs: 22, sm: 26, md: 30 }, color: hasAudio ? "#111629" : "#d1d5db" }} />
+            <PauseRoundedIcon sx={{ fontSize: { xs: 18, sm: 22, md: 26 }, color: hasAudio ? "#111629" : "#d1d5db" }} />
           ) : (
-            <PlayArrowRoundedIcon sx={{ fontSize: { xs: 22, sm: 26, md: 30 }, color: hasAudio ? "#111629" : "#d1d5db" }} />
+            <PlayArrowRoundedIcon sx={{ fontSize: { xs: 18, sm: 22, md: 26 }, color: hasAudio ? "#111629" : "#d1d5db" }} />
           )}
         </IconButton>
 
@@ -172,9 +172,9 @@ export default function CustomAudioPlayer({ src }: Props) {
           onClick={() => skip(10)} 
           size="small" 
           disabled={disabled}
-          sx={{ p: { xs: 0.25, sm: 0.5, md: 1 } }}
+          sx={{ p: { xs: 0.25, sm: 0.25, md: 0.5 } }}
         >
-          <Forward10Icon sx={{ fontSize: { xs: 16, sm: 18, md: 20 }, color: hasAudio ? "inherit" : "#d1d5db" }} />
+          <Forward10Icon sx={{ fontSize: { xs: 14, sm: 16, md: 18 }, color: hasAudio ? "inherit" : "#d1d5db" }} />
         </IconButton>
       </Box>
 
@@ -301,7 +301,7 @@ export default function CustomAudioPlayer({ src }: Props) {
       {/* volume */}
       <VolumeUpIcon 
         sx={{ 
-          fontSize: { xs: 16, sm: 18, md: 20 }, 
+          fontSize: { xs: 14, sm: 16, md: 18 }, 
           opacity: disabled ? 0.3 : 1,
           color: hasAudio ? "#6b7280" : "#d1d5db",
           display: { xs: "none", lg: "block" },
@@ -316,7 +316,7 @@ export default function CustomAudioPlayer({ src }: Props) {
         onChange={(_, v) => setVolume(v as number)}
         disabled={disabled}
         sx={{ 
-          width: { xs: 50, sm: 60, md: 80 },
+          width: { xs: 40, sm: 50, md: 70 },
           display: { xs: "none", lg: "block" },
           "& .MuiSlider-root": {
             padding: "13px 0",

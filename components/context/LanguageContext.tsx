@@ -23,6 +23,7 @@ const translations: Translations = {
     "status.new": "NEW",
     "status.open": "OPEN",
     "status.done": "DONE",
+    "status.cancelled": "CANCELLED",
 
     // Priority
     "priority.urgent": "URGENT",
@@ -125,6 +126,17 @@ const translations: Translations = {
     // Actions menu
     "ticket.actions": "Ticket actions",
     actions: "Actions",
+
+    // Notes
+    "notes.title": "Ticket Notes",
+    "notes.loading": "Loading notes...",
+    "notes.empty": "No notes yet",
+    "notes.add.title": "Add New Note",
+    "notes.add.placeholder": "Enter your note...",
+    "notes.add.button": "Add Note",
+    "notes.add.adding": "Adding...",
+    "notes.error.add": "Failed to add note",
+    close: "Close",
   },
   es: {
     // Header
@@ -139,6 +151,7 @@ const translations: Translations = {
     "status.new": "NUEVO",
     "status.open": "ABIERTO",
     "status.done": "TERMINADO",
+    "status.cancelled": "CANCELADO",
 
     // Priority
     "priority.urgent": "URGENTE",
@@ -242,6 +255,17 @@ const translations: Translations = {
     // Actions menu
     "ticket.actions": "Acciones del ticket",
     actions: "Acciones",
+
+    // Notes
+    "notes.title": "Notas del Ticket",
+    "notes.loading": "Cargando notas...",
+    "notes.empty": "Sin notas aún",
+    "notes.add.title": "Agregar Nueva Nota",
+    "notes.add.placeholder": "Ingresa tu nota...",
+    "notes.add.button": "Agregar Nota",
+    "notes.add.adding": "Agregando...",
+    "notes.error.add": "Error al agregar nota",
+    close: "Cerrar",
   },
 };
 
