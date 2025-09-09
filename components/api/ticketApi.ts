@@ -207,3 +207,28 @@ export async function searchPersons(
   const json = await res.json();
   return json?.data?.items ?? [];
 }
+
+export async function getTicketNotes(apiBase: string, ticketId: string) {
+  const res = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`);
+  if (!res.ok) throw new Error(`Get notes failed: HTTP ${res.status}`);
+  return res.json();
+}
+
+export async function addTicketNote(
+  apiBase: string,
+  ticketId: string,
+  note: {
+    content: string;
+    type?: string;
+    createdBy?: string;
+    createdByName?: string;
+  }
+) {
+  const res = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(note),
+  });
+  if (!res.ok) throw new Error(`Add note failed: HTTP ${res.status}`);
+  return res.json();
+}
