@@ -93,7 +93,7 @@ export function AssignmentSelector({
 
         {/* Dropdown */}
         {isOpen && !disabled && (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-xl max-h-72 overflow-hidden">
+          <div className="absolute z-[60] w-full mt-1 bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-xl overflow-visible">
             {/* Search box */}
             <div className="p-2 sm:p-3 border-b border-gray-100">
               <input
@@ -107,7 +107,7 @@ export function AssignmentSelector({
             </div>
 
             {/* People list */}
-            <div className="max-h-48 overflow-y-auto">
+            <div className="max-h-60 sm:max-h-72 overflow-y-auto">
               {filteredPeople.map((person, index) => (
                 <div
                   key={person}

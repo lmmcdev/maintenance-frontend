@@ -7,6 +7,7 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import { TicketStatus } from "../types/ticket";
 import { StatusTabs } from "./StatusTabs";
 import { LanguageToggle } from "../ui/LanguageToggle";
+import { OptionsMenu } from "../ui/OptionsMenu";
 import { useLanguage } from "../context/LanguageContext";
 
 function FullWidthBanner({ title, subtitle, kind }: { title: string; subtitle: string; kind: "tickets" | "dashboard" }) {
@@ -18,7 +19,10 @@ function FullWidthBanner({ title, subtitle, kind }: { title: string; subtitle: s
             {kind === "dashboard" ? <DashboardOutlinedIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22, lg: 24 } }} /> : <AssignmentOutlinedIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22, lg: 24 } }} />}
             <h2 className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold tracking-tight">{title}</h2>
           </div>
-          <LanguageToggle />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <LanguageToggle />
+            <OptionsMenu />
+          </div>
         </div>
         <p className="text-xs sm:text-sm md:text-base lg:text-lg opacity-90 mt-0.5 sm:mt-1 md:mt-2 font-medium leading-tight">{subtitle}</p>
       </div>

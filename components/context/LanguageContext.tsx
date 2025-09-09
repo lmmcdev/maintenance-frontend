@@ -139,6 +139,8 @@ const translations: Translations = {
     "notes.add.button": "Add Note",
     "notes.add.adding": "Adding...",
     "notes.error.add": "Failed to add note",
+    "more.options": "More options",
+    "view.cancelled.tickets": "View cancelled tickets",
     close: "Close",
   },
   es: {
@@ -271,6 +273,8 @@ const translations: Translations = {
     "notes.add.button": "Agregar Nota",
     "notes.add.adding": "Agregando...",
     "notes.error.add": "Error al agregar nota",
+    "more.options": "Más opciones",
+    "view.cancelled.tickets": "Ver tickets cancelados",
     close: "Cerrar",
   },
 };

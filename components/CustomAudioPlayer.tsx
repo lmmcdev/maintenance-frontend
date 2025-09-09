@@ -215,7 +215,7 @@ export default function CustomAudioPlayer({ src }: Props) {
         sx={{
           flexGrow: 1,
           width: "auto",
-          mx: { xs: 0.5, sm: 0.75, md: 1 },
+          mx: { xs: 1, sm: 0.75, md: 1 },
           "& .MuiSlider-root": {
             padding: { xs: "14px 0", sm: "16px 0", md: "18px 0" },
           },

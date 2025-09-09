@@ -250,11 +250,11 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
 
   return (
     <article
-      className="rounded-xl sm:rounded-2xl border border-gray-200/60 bg-white p-3 sm:p-4 md:p-6 lg:p-8 shadow-lg sm:shadow-2xl transition-all duration-300 hover:scale-[1.01] sm:hover:scale-[1.02] backdrop-blur-sm relative overflow-hidden"
+      className={`rounded-xl sm:rounded-2xl border border-gray-200/60 bg-white p-3 sm:p-4 md:p-6 lg:p-8 shadow-lg sm:shadow-2xl transition-all duration-300 hover:scale-[1.01] sm:hover:scale-[1.02] backdrop-blur-sm relative ${isAssignDropdownOpen || isCategoryDropdownOpen ? 'overflow-visible' : 'overflow-hidden'}`}
       style={{
         boxShadow:
           "0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)",
-        zIndex: isAssignDropdownOpen || isCategoryDropdownOpen ? 50 : "auto",
+        zIndex: isAssignDropdownOpen || isCategoryDropdownOpen ? 40 : "auto",
       }}
     >
       {/* Header */}
@@ -293,7 +293,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
               : t.phoneNumber}
           </div>
         </div>
-        <div className="flex items-center gap-1 sm:gap-2 ml-2">
+        <div className="flex items-center gap-0.5 sm:gap-1 md:gap-2 ml-2">
           {/* Quick Action Buttons */}
           {t.status !== "CANCELLED" && (
             <>
@@ -301,10 +301,10 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                 <button
                   onClick={markDone}
                   disabled={!!busy}
-                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-green-50 to-green-100/50 text-green-700 border border-green-200/60 rounded-lg hover:from-green-100 hover:to-green-200/50 hover:border-green-300/60 hover:text-green-800 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all duration-300 text-xs font-semibold shadow-sm hover:shadow-md flex items-center gap-1"
+                  className="px-1 sm:px-2 md:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-green-50 to-green-100/50 text-green-700 border border-green-200/60 rounded-md sm:rounded-lg hover:from-green-100 hover:to-green-200/50 hover:border-green-300/60 hover:text-green-800 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all duration-300 text-[10px] sm:text-xs font-semibold shadow-sm hover:shadow-md flex items-center gap-0.5 sm:gap-1 flex-shrink-0"
                 >
                   <svg
-                    className="w-3 h-3 sm:w-4 sm:h-4"
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -316,7 +316,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span className="text-xs sm:text-sm">
+                  <span className="hidden xs:inline text-[10px] sm:text-xs md:text-sm">
                     {translate("mark.completed")}
                   </span>
                 </button>
@@ -325,10 +325,10 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                 <button
                   onClick={reopen}
                   disabled={!!busy}
-                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-50 to-blue-100/50 text-blue-700 border border-blue-200/60 rounded-lg hover:from-blue-100 hover:to-blue-200/50 hover:border-blue-300/60 hover:text-blue-800 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all duration-300 text-xs font-semibold shadow-sm hover:shadow-md flex items-center gap-1"
+                  className="px-1 sm:px-2 md:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-50 to-blue-100/50 text-blue-700 border border-blue-200/60 rounded-md sm:rounded-lg hover:from-blue-100 hover:to-blue-200/50 hover:border-blue-300/60 hover:text-blue-800 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all duration-300 text-[10px] sm:text-xs font-semibold shadow-sm hover:shadow-md flex items-center gap-0.5 sm:gap-1 flex-shrink-0"
                 >
                   <svg
-                    className="w-3 h-3 sm:w-4 sm:h-4"
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -340,7 +340,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                     />
                   </svg>
-                  <span className="text-xs sm:text-sm">
+                  <span className="hidden xs:inline text-[10px] sm:text-xs md:text-sm">
                     {translate("reopen.ticket")}
                   </span>
                 </button>
@@ -349,10 +349,10 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                 <button
                   onClick={() => setShowCancelDialog(true)}
                   disabled={!!busy}
-                  className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-red-50 to-red-100/50 text-red-700 border border-red-200/60 rounded-lg hover:from-red-100 hover:to-red-200/50 hover:border-red-300/60 hover:text-red-800 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all duration-300 text-xs font-semibold shadow-sm hover:shadow-md flex items-center gap-1"
+                  className="px-1 sm:px-2 md:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-red-50 to-red-100/50 text-red-700 border border-red-200/60 rounded-md sm:rounded-lg hover:from-red-100 hover:to-red-200/50 hover:border-red-300/60 hover:text-red-800 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all duration-300 text-[10px] sm:text-xs font-semibold shadow-sm hover:shadow-md flex items-center gap-0.5 sm:gap-1 flex-shrink-0"
                 >
                   <svg
-                    className="w-3 h-3 sm:w-4 sm:h-4"
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -364,7 +364,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                       d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span className="text-xs sm:text-sm">
+                  <span className="hidden xs:inline text-[10px] sm:text-xs md:text-sm">
                     {translate("cancel.ticket.action")}
                   </span>
                 </button>
@@ -374,11 +374,11 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
 
           <button
             onClick={() => setShowNotesDialog(true)}
-            className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-gray-50 to-gray-100/50 text-gray-700 border border-gray-200/60 rounded-lg hover:from-gray-100 hover:to-gray-200/50 hover:border-gray-300/60 hover:text-gray-800 transition-all duration-300 text-xs font-semibold shadow-sm hover:shadow-md flex items-center gap-1"
+            className="px-1 sm:px-2 md:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-gray-50 to-gray-100/50 text-gray-700 border border-gray-200/60 rounded-md sm:rounded-lg hover:from-gray-100 hover:to-gray-200/50 hover:border-gray-300/60 hover:text-gray-800 transition-all duration-300 text-[10px] sm:text-xs font-semibold shadow-sm hover:shadow-md flex items-center gap-0.5 sm:gap-1 flex-shrink-0"
             title="View/Add Notes"
           >
             <svg
-              className="w-3 h-3 sm:w-4 sm:h-4"
+              className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -390,7 +390,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            <span className="text-xs sm:text-sm">Notes</span>
+            <span className="hidden xs:inline text-[10px] sm:text-xs md:text-sm">Notes</span>
           </button>
         </div>
       </header>
@@ -452,7 +452,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
       {/* Ticket Configuration */}
       <div className="mb-4 sm:mb-5">
         <div
-          className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 space-y-3 sm:space-y-4 min-w-0"
+          className={`bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 space-y-3 sm:space-y-4 min-w-0 ${isAssignDropdownOpen || isCategoryDropdownOpen ? 'overflow-visible' : 'overflow-hidden'}`}
           style={{
             boxShadow:
               "0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)",
@@ -525,14 +525,14 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
                 {/* Dropdown */}
                 {isAssignDropdownOpen && !busy && (
                   <div
-                    className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-2xl max-h-64 overflow-hidden"
+                    className="absolute z-[60] w-full mt-1 bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-2xl overflow-visible"
                     style={{
                       boxShadow:
                         "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
                     }}
                   >
                     {/* People list */}
-                    <div className="max-h-48 overflow-y-auto">
+                    <div className="max-h-60 sm:max-h-72 overflow-y-auto">
                       {peopleList.map((person) => (
                         <label
                           key={person}

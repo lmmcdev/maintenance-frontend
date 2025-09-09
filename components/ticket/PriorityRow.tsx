@@ -32,7 +32,7 @@ export function PriorityRow({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
       <span className="text-gray-600 text-xs sm:text-sm min-w-[48px] sm:min-w-[64px] font-semibold">{t("priority")}</span>
-      <div className="flex gap-1 sm:gap-2 flex-wrap">
+      <div className="flex gap-1.5 sm:gap-2 flex-wrap">
         {items.map(it => {
           const active = value === it.key;
           return (
@@ -41,13 +41,12 @@ export function PriorityRow({
               disabled={busy}
               onClick={() => onChange(it.key)}
               className={clsx(
-                "px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold border transition-all duration-300 shadow-sm hover:shadow-md",
+                "px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold border transition-all duration-300 shadow-sm hover:shadow-md flex-shrink-0",
                 active ? "text-white transform scale-105" : "text-gray-600 bg-gray-50 hover:bg-gray-100 border-gray-200"
               )}
               style={{ borderColor: active ? it.color : "#E5E7EB", backgroundColor: active ? it.color : undefined }}
             >
-              <span className="hidden xs:inline sm:inline">{it.label}</span>
-              <span className="xs:hidden sm:hidden">{it.label.slice(0, 1)}</span>
+              <span>{it.label}</span>
             </button>
           );
         })}

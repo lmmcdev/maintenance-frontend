@@ -42,11 +42,11 @@ export function TicketsDashboard({ apiBase = "/_api" }: { apiBase?: string }) {
         ) : (
           <div className="p-2 sm:p-4 md:p-6 lg:p-8 space-y-3 sm:space-y-5 md:space-y-6 max-w-screen-xl mx-auto">
             <StatBoxes counts={counts} />
+            <CategoryChart tickets={[...newItems, ...progItems, ...doneItems]} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-5 md:gap-6">
               <PriorityChart priorities={priorities} />
               <AssigneeChart tickets={[...newItems, ...progItems, ...doneItems]} />
             </div>
-            <CategoryChart tickets={[...newItems, ...progItems, ...doneItems]} />
           </div>
         )}
       </div>

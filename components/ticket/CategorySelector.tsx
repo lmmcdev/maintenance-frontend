@@ -170,7 +170,7 @@ export function CategorySelector({
         {/* Dropdown - identical to AssignmentSelector */}
         {isOpen && !busy && (
           <div
-            className={`absolute z-50 w-full bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-2xl max-h-60 overflow-hidden ${
+            className={`absolute z-[60] w-full bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-2xl max-h-60 overflow-hidden ${
               dropdownPosition === "up" ? "bottom-full mb-1" : "top-full mt-1"
             }`}
             style={{
