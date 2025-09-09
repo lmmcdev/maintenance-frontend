@@ -81,8 +81,9 @@ export function CategorySelector({
     if (busy) return;
 
     try {
-      // Find the subcategory object
+      // Find the subcategory object and its parent category
       let subcategoryToAssign: { name: string; displayName: string } | null = null;
+      let parentCategory: string | null = null;
 
       categories.forEach((category) => {
         const foundSubcat = category.subcats.find(
@@ -90,11 +91,14 @@ export function CategorySelector({
         );
         if (foundSubcat) {
           subcategoryToAssign = foundSubcat;
+          parentCategory = category.name; // Store the parent category
         }
       });
 
-      if (subcategoryToAssign !== null) {
+      if (subcategoryToAssign !== null && parentCategory !== null) {
+        // Update both category and subcategory
         await patchTicket(apiBase, t.id, {
+          category: parentCategory, // Set the parent category
           subcategory: subcategoryToAssign,
         });
         setSelectedName(categoryName);
@@ -104,7 +108,7 @@ export function CategorySelector({
         setSearchTerm("");
       }
     } catch (err: any) {
-      console.error("Error updating subcategory:", err);
+      console.error("Error updating category/subcategory:", err);
       alert(err?.message ?? translate("error.updating.subcategory"));
     }
   };
