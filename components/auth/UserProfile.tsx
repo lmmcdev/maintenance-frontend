@@ -41,7 +41,7 @@ export function UserProfile() {
       // First try to get picture from ID token claims
       if (account?.idTokenClaims?.picture) {
         console.log('✅ Found picture in idTokenClaims:', account.idTokenClaims.picture);
-        setProfilePhoto(account.idTokenClaims.picture);
+        setProfilePhoto(account.idTokenClaims.picture as string);
         return;
       }
       

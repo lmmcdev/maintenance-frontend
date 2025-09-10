@@ -53,7 +53,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   async function handleCancelTicket(reason: string) {
     try {
       setBusy("cancel");
-      await cancelTicket(apiBase, t.id, reason);
+      await cancelTicket(apiBase, t.id, { reason });
       onChanged?.();
       setShowCancelDialog(false);
       setCancelNote("");
@@ -241,8 +241,10 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
       
       <CancelDialog
         show={showCancelDialog}
-        onClose={() => setShowCancelDialog(false)}
-        onCancel={handleCancelTicket}
+        note={cancelNote}
+        onNoteChange={setCancelNote}
+        onCancel={() => setShowCancelDialog(false)}
+        onConfirm={() => handleCancelTicket(cancelNote)}
       />
     </article>
     </>
