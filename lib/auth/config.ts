@@ -5,8 +5,8 @@ export const msalConfig: Configuration = {
   auth: {
     clientId: process.env.NEXT_PUBLIC_AZURE_CLIENT_ID || "", // Application (client) ID from Azure
     authority: process.env.NEXT_PUBLIC_AZURE_AUTHORITY || "", // Directory (tenant) ID from Azure
-    redirectUri: process.env.NEXT_PUBLIC_AZURE_REDIRECT_URI || window?.location?.origin || "http://localhost:3000", // Redirect URI
-    postLogoutRedirectUri: window?.location?.origin || "http://localhost:3000", // Force redirect to home after logout
+    redirectUri: process.env.NEXT_PUBLIC_AZURE_REDIRECT_URI || (typeof window !== 'undefined' ? window.location.origin : "http://localhost:3000"), // Redirect URI
+    postLogoutRedirectUri: typeof window !== 'undefined' ? window.location.origin : "http://localhost:3000", // Force redirect to home after logout
     navigateToLoginRequestUrl: false, // Set to false to prevent navigation to the original request url after login
   },
   cache: {
