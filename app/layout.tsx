@@ -3,6 +3,7 @@ import "./globals.css";
 import { Nav } from "./(ui)/nav";
 import { AuthProvider } from "../lib/auth/AuthProvider";
 import { LanguageProvider } from "../components/context/LanguageContext";
+import { ProtectedRoute } from "../components/auth/ProtectedRoute";
 
 export const metadata: Metadata = { 
   title: "Maintenance",
@@ -19,7 +20,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-dvh bg-gray-50">
         <AuthProvider>
           <LanguageProvider>
-            {children}
+            <ProtectedRoute>
+              {children}
+            </ProtectedRoute>
           </LanguageProvider>
         </AuthProvider>
       </body>
