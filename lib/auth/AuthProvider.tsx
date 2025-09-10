@@ -18,6 +18,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const initializeMsal = async () => {
       try {
         console.log('🔧 Initializing MSAL with config:', msalConfig);
+        console.log('🔍 Client ID in browser:', msalConfig.auth.clientId);
+        console.log('🔍 Authority in browser:', msalConfig.auth.authority);
+        
+        // Validate client_id is not empty
+        if (!msalConfig.auth.clientId || msalConfig.auth.clientId.trim() === '') {
+          throw new Error('Client ID is empty or undefined in browser context');
+        }
+        
         await msalInstance.initialize();
         console.log('✅ MSAL initialized successfully');
         
