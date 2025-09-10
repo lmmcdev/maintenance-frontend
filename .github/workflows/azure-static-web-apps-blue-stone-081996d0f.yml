@@ -43,7 +43,10 @@ jobs:
           ###### End of Repository/Build Configurations ######
         env:
           NEXT_PUBLIC_API_BASE: https://maintenance-api-e5a4d3d9fjesgzd9.eastus2-01.azurewebsites.net
-
+          # Azure AD B2C Configuration
+          NEXT_PUBLIC_AZURE_CLIENT_ID=b89eb5a2-1da2-4022-9e30-224bd1810735
+          NEXT_PUBLIC_AZURE_AUTHORITY=https://login.microsoftonline.com/7313ad10-b885-4b50-9c75-9dbbd975618f
+          NEXT_PUBLIC_AZURE_REDIRECT_URI=https://https://maintenance.axislmmc.com/
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
