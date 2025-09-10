@@ -36,14 +36,14 @@ export function OptionsMenu() {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg sm:rounded-xl hover:bg-white/20 transition-all duration-300 text-white"
+        className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-white/70 backdrop-blur-sm border border-blue-200/50 hover:bg-white hover:border-blue-300 transition-all duration-300 text-[#00A1FF] rounded-lg sm:rounded-xl shadow-sm"
         aria-label={t("more.options")}
       >
         <MoreVertIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22 } }} />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 bg-white rounded-lg sm:rounded-xl shadow-2xl border border-gray-200/60 py-2 min-w-[160px] sm:min-w-[180px] z-[70]">
+        <div className="absolute right-0 top-full mt-2 bg-white rounded-lg sm:rounded-xl shadow-2xl border border-gray-200/60 py-2 min-w-[160px] sm:min-w-[180px] z-[9998]">
           <button
             onClick={handleCancelledClick}
             className="w-full text-left px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2 sm:gap-3"

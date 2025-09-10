@@ -1,4 +1,4 @@
-import { Configuration, PopupRequest } from "@azure/msal-browser";
+import { Configuration, RedirectRequest } from "@azure/msal-browser";
 
 // MSAL configuration
 export const msalConfig: Configuration = {
@@ -6,6 +6,7 @@ export const msalConfig: Configuration = {
     clientId: process.env.NEXT_PUBLIC_AZURE_CLIENT_ID || "", // Application (client) ID from Azure
     authority: process.env.NEXT_PUBLIC_AZURE_AUTHORITY || "", // Directory (tenant) ID from Azure
     redirectUri: process.env.NEXT_PUBLIC_AZURE_REDIRECT_URI || "/", // Redirect URI
+    postLogoutRedirectUri: "/", // Force redirect to home after logout
   },
   cache: {
     cacheLocation: "sessionStorage", // Configures cache location. "sessionStorage" is more secure, but "localStorage" gives you SSO.
@@ -14,8 +15,8 @@ export const msalConfig: Configuration = {
 };
 
 // Add scopes here for ID token to be used at Microsoft identity platform endpoints.
-export const loginRequest: PopupRequest = {
-  scopes: ["User.Read"],
+export const loginRequest: RedirectRequest = {
+  scopes: ["User.Read", "User.ReadBasic.All", "profile"],
   prompt: "select_account"
 };
 

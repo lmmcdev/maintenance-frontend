@@ -10,7 +10,7 @@ export function useAuth() {
   
   const login = async () => {
     try {
-      await instance.loginPopup(loginRequest);
+      await instance.loginRedirect(loginRequest);
     } catch (error) {
       console.error("Login failed:", error);
       throw error;
@@ -19,7 +19,7 @@ export function useAuth() {
   
   const logout = async () => {
     try {
-      await instance.logoutPopup();
+      await instance.logoutRedirect();
     } catch (error) {
       console.error("Logout failed:", error);
       throw error;

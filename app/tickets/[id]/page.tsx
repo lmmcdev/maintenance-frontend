@@ -14,8 +14,8 @@ import CustomAudioPlayer from "@/components/CustomAudioPlayer";
 import { patchTicket, patchTicketAssignees, patchStatus, cancelTicket, searchPersons } from "@/components/api/ticketApi";
 import { useStaticData } from "@/components/context/StaticDataContext";
 import { useLanguage } from "@/components/context/LanguageContext";
-import { LanguageProvider } from "@/components/context/LanguageContext";
 import { StaticDataProvider } from "@/components/context/StaticDataContext";
+import { Nav } from "@/app/(ui)/nav";
 
 function TicketDetailPageContent() {
   const params = useParams();
@@ -234,18 +234,12 @@ function TicketDetailPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6 py-4 sm:py-6 md:py-8">
+      <div className="sticky top-0 z-50">
+        <Nav />
+      </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-6 md:py-8">
         {/* Header */}
-        <div className="mb-4 sm:mb-6">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-1 sm:gap-2 text-gray-600 hover:text-gray-900 mb-3 sm:mb-4 transition-colors text-sm sm:text-base"
-          >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            {translate("close")}
-          </button>
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#00a1ff] rounded-full flex items-center justify-center">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -254,6 +248,15 @@ function TicketDetailPageContent() {
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{translate("ticket.details")}</h1>
           </div>
+          
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center justify-center w-10 h-10 sm:w-9 sm:h-9 bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-600 hover:text-gray-800 rounded-full transition-all duration-200 shadow-md hover:shadow-lg active:shadow-sm border border-gray-300 hover:border-gray-400"
+          >
+            <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         {/* Main Content */}
@@ -267,7 +270,6 @@ function TicketDetailPageContent() {
                   <StatusBadge status={ticket.status} />
                 </div>
                 <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-1">{ticket.title}</h2>
-                <p className="text-xs sm:text-sm text-gray-600">ID: {ticket.id}</p>
                 {ticket.phoneNumber && (
                   <div className="text-xs sm:text-sm text-gray-500 font-medium flex items-center gap-1 mt-2">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -284,56 +286,60 @@ function TicketDetailPageContent() {
               
               {/* Action Buttons */}
               <div className="flex items-center gap-2 flex-wrap">
+                {/* Notes Button - Always visible */}
+                <button
+                  onClick={() => setShowNotesDialog(true)}
+                  className="px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 active:bg-gray-100 transition-all duration-200 text-xs sm:text-sm font-medium shadow-sm hover:shadow-md active:shadow-sm flex items-center justify-center gap-1.5 flex-shrink-0 min-h-[36px]"
+                >
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span className="leading-none">{translate("button.notes")}</span>
+                </button>
+
+                {/* Status-based Action Buttons */}
                 {ticket.status !== "CANCELLED" && (
                   <>
-                    {ticket.status === "OPEN" && (
-                      <button
-                        onClick={markDone}
-                        disabled={!!busy}
-                        className="px-3 py-2 bg-gradient-to-r from-green-50 to-green-100/50 text-green-700 border border-green-200/60 rounded-lg hover:from-green-100 hover:to-green-200/50 hover:border-green-300/60 hover:text-green-800 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all duration-300 text-sm font-semibold shadow-sm hover:shadow-md flex items-center gap-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {translate("mark.completed")}
-                      </button>
+                    {(ticket.status === "NEW" || ticket.status === "OPEN") && (
+                      <>
+                        <button
+                          onClick={markDone}
+                          disabled={!!busy}
+                          className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 active:bg-green-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 text-xs sm:text-sm font-medium shadow-sm hover:shadow-md active:shadow-sm disabled:shadow-sm flex items-center justify-center gap-1.5 flex-shrink-0 min-h-[36px]"
+                        >
+                          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="hidden sm:inline leading-none">{translate("mark.completed")}</span>
+                          <span className="sm:hidden leading-none">{translate("button.done")}</span>
+                        </button>
+                        <button
+                          onClick={() => setShowCancelDialog(true)}
+                          disabled={!!busy}
+                          className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 active:bg-red-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 text-xs sm:text-sm font-medium shadow-sm hover:shadow-md active:shadow-sm disabled:shadow-sm flex items-center justify-center gap-1.5 flex-shrink-0 min-h-[36px]"
+                        >
+                          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="hidden sm:inline leading-none">{translate("cancel.ticket.action")}</span>
+                          <span className="sm:hidden leading-none">{translate("button.cancel")}</span>
+                        </button>
+                      </>
                     )}
                     {ticket.status === "DONE" && (
                       <button
                         onClick={reopen}
                         disabled={!!busy}
-                        className="px-3 py-2 bg-gradient-to-r from-blue-50 to-blue-100/50 text-blue-700 border border-blue-200/60 rounded-lg hover:from-blue-100 hover:to-blue-200/50 hover:border-blue-300/60 hover:text-blue-800 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all duration-300 text-sm font-semibold shadow-sm hover:shadow-md flex items-center gap-2"
+                        className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 text-xs sm:text-sm font-medium shadow-sm hover:shadow-md active:shadow-sm disabled:shadow-sm flex items-center justify-center gap-1.5 flex-shrink-0 min-h-[36px]"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
-                        {translate("reopen.ticket")}
-                      </button>
-                    )}
-                    {ticket.status !== "DONE" && (
-                      <button
-                        onClick={() => setShowCancelDialog(true)}
-                        disabled={!!busy}
-                        className="px-3 py-2 bg-gradient-to-r from-red-50 to-red-100/50 text-red-700 border border-red-200/60 rounded-lg hover:from-red-100 hover:to-red-200/50 hover:border-red-300/60 hover:text-red-800 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all duration-300 text-sm font-semibold shadow-sm hover:shadow-md flex items-center gap-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {translate("cancel.ticket.action")}
+                        <span className="leading-none">{translate("reopen.ticket")}</span>
                       </button>
                     )}
                   </>
                 )}
-                
-                <button
-                  onClick={() => setShowNotesDialog(true)}
-                  className="px-3 py-2 bg-gradient-to-r from-gray-50 to-gray-100/50 text-gray-700 border border-gray-200/60 rounded-lg hover:from-gray-100 hover:to-gray-200/50 hover:border-gray-300/60 hover:text-gray-800 transition-all duration-300 text-sm font-semibold shadow-sm hover:shadow-md flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Notes
-                </button>
               </div>
             </div>
 
@@ -364,30 +370,37 @@ function TicketDetailPageContent() {
             </div>
           )}
 
-          {/* Assignment Info */}
-          {(ticket.assignee || ticket.assigneeId || (ticket as any).assignees || (ticket as any).assigneeIds) && (
-            <div className="rounded-xl sm:rounded-2xl border border-gray-200/60 bg-white p-3 sm:p-4 md:p-6 shadow-lg sm:shadow-2xl" style={{ boxShadow: '0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)' }}>
-              <div className="bg-gradient-to-r from-green-50 to-green-100/50 rounded-lg sm:rounded-xl border border-green-200/60 p-3 sm:p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-1.5 sm:w-2 h-4 sm:h-6 bg-green-500 rounded-full"></div>
-                  <h3 className="font-bold text-green-700 text-base sm:text-lg">{translate("assigned.to")}</h3>
-                </div>
-                <div className="text-sm sm:text-base font-bold text-green-800">
-                  {ticket.assignee
-                    ? `${ticket.assignee.firstName} ${ticket.assignee.lastName}`
-                    : ticket.assigneeId
-                    ? ticket.assigneeId
-                    : (ticket as any).assignees && (ticket as any).assignees.length > 0
-                    ? (ticket as any).assignees
-                        .map((a: any) => `${a.firstName} ${a.lastName}`)
-                        .join(", ")
-                    : (ticket as any).assigneeIds && (ticket as any).assigneeIds.length > 0
-                    ? (ticket as any).assigneeIds.join(", ")
-                    : "Unknown assignee"}
+          {/* Assignment Info - Only show if there's a valid assignee */}
+          {(() => {
+            const hasValidAssignee = ticket.assignee?.firstName || 
+              ticket.assigneeId || 
+              ((ticket as any).assignees && (ticket as any).assignees.length > 0) ||
+              ((ticket as any).assigneeIds && (ticket as any).assigneeIds.length > 0);
+            
+            if (!hasValidAssignee) return null;
+
+            return (
+              <div className="rounded-xl sm:rounded-2xl border border-gray-200/60 bg-white p-3 sm:p-4 md:p-6 shadow-lg sm:shadow-2xl" style={{ boxShadow: '0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)' }}>
+                <div className="bg-gradient-to-r from-green-50 to-green-100/50 rounded-lg sm:rounded-xl border border-green-200/60 p-3 sm:p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1.5 sm:w-2 h-4 sm:h-6 bg-green-500 rounded-full"></div>
+                    <h3 className="font-bold text-green-700 text-base sm:text-lg">{translate("assigned.to")}</h3>
+                  </div>
+                  <div className="text-sm sm:text-base font-bold text-green-800">
+                    {ticket.assignee?.firstName
+                      ? `${ticket.assignee.firstName} ${ticket.assignee.lastName}`
+                      : ticket.assigneeId
+                      ? ticket.assigneeId
+                      : (ticket as any).assignees && (ticket as any).assignees.length > 0
+                      ? (ticket as any).assignees
+                          .map((a: any) => `${a.firstName} ${a.lastName}`)
+                          .join(", ")
+                      : (ticket as any).assigneeIds.join(", ")}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Configuration */}
           <div className="rounded-xl sm:rounded-2xl border border-gray-200/60 bg-white p-3 sm:p-4 md:p-6 shadow-lg sm:shadow-2xl" style={{ boxShadow: '0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)' }}>
@@ -397,8 +410,6 @@ function TicketDetailPageContent() {
             </div>
 
             <div className="space-y-4 sm:space-y-6">
-              <CategorySelector t={ticket} apiBase={apiBase!} onChanged={reloadTicket} busy={!!busy} />
-
               <PriorityRow
                 value={ticket.priority}
                 busy={!!busy}
@@ -414,6 +425,8 @@ function TicketDetailPageContent() {
                   }
                 }}
               />
+
+              <CategorySelector t={ticket} apiBase={apiBase!} onChanged={reloadTicket} busy={!!busy} />
 
               <AssignmentSelector
                 selectedNames={selectedAssigneeNames}
@@ -470,10 +483,8 @@ function TicketDetailPageContent() {
 
 export default function TicketDetailPage() {
   return (
-    <LanguageProvider>
-      <StaticDataProvider apiBase={process.env.NEXT_PUBLIC_API_BASE || ""}>
-        <TicketDetailPageContent />
-      </StaticDataProvider>
-    </LanguageProvider>
+    <StaticDataProvider apiBase={process.env.NEXT_PUBLIC_API_BASE || ""}>
+      <TicketDetailPageContent />
+    </StaticDataProvider>
   );
 }

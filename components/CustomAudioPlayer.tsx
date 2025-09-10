@@ -119,42 +119,43 @@ export default function CustomAudioPlayer({ src }: Props) {
   return (
     <Box
       sx={{
-        p: { xs: 0.4, sm: 0.75, md: 1 },
-        borderRadius: { xs: "6px", sm: "8px", md: "10px" },
+        p: { xs: 0.75, sm: 0.75, md: 1 },
+        borderRadius: { xs: "8px", sm: "8px", md: "10px" },
         boxShadow: "none",
         display: "flex",
         alignItems: "center",
-        gap: { xs: 0.2, sm: 0.5, md: 1 },
+        gap: { xs: 0.5, sm: 0.5, md: 1 },
         bgcolor: "#fff",
         opacity: disabled ? 0.85 : 1,
         flexWrap: "nowrap",
         border: "1px solid #e5e7eb",
         transition: "all 0.2s ease",
-        minHeight: { xs: 28, sm: 36, md: 40 },
+        minHeight: { xs: 40, sm: 36, md: 40 },
         maxWidth: "100%",
         overflow: "hidden",
+        mx: { xs: 1, sm: 0, md: 0 },
         "&:hover": {
           boxShadow: "none",
         },
       }}
     >
       {/* skip/play group */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.1, sm: 0.5, md: 1 }, flexShrink: 0 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, sm: 0.5, md: 1 }, flexShrink: 0 }}>
         <IconButton 
           onClick={() => skip(-10)} 
           size="small" 
           disabled={disabled}
-          sx={{ p: { xs: 0.1, sm: 0.25, md: 0.5 } }}
+          sx={{ p: { xs: 0.3, sm: 0.25, md: 0.5 } }}
         >
-          <Replay10Icon sx={{ fontSize: { xs: 12, sm: 16, md: 18 }, color: hasAudio ? "inherit" : "#d1d5db" }} />
+          <Replay10Icon sx={{ fontSize: { xs: 18, sm: 16, md: 18 }, color: hasAudio ? "inherit" : "#d1d5db" }} />
         </IconButton>
 
         <IconButton
           onClick={() => setPlaying((p) => !p)}
           size="small"
           sx={{ 
-            width: { xs: 18, sm: 24, md: 28 }, 
-            height: { xs: 18, sm: 24, md: 28 }, 
+            width: { xs: 28, sm: 24, md: 28 }, 
+            height: { xs: 28, sm: 24, md: 28 }, 
             color: hasAudio ? "#111629" : "#d1d5db",
             "&:hover": {
               transform: hasAudio ? "scale(1.05)" : "none",
@@ -164,9 +165,9 @@ export default function CustomAudioPlayer({ src }: Props) {
           disabled={disabled}
         >
           {playing ? (
-            <PauseRoundedIcon sx={{ fontSize: { xs: 16, sm: 22, md: 26 }, color: hasAudio ? "#111629" : "#d1d5db" }} />
+            <PauseRoundedIcon sx={{ fontSize: { xs: 22, sm: 22, md: 26 }, color: hasAudio ? "#111629" : "#d1d5db" }} />
           ) : (
-            <PlayArrowRoundedIcon sx={{ fontSize: { xs: 16, sm: 22, md: 26 }, color: hasAudio ? "#111629" : "#d1d5db" }} />
+            <PlayArrowRoundedIcon sx={{ fontSize: { xs: 22, sm: 22, md: 26 }, color: hasAudio ? "#111629" : "#d1d5db" }} />
           )}
         </IconButton>
 
@@ -174,9 +175,9 @@ export default function CustomAudioPlayer({ src }: Props) {
           onClick={() => skip(10)} 
           size="small" 
           disabled={disabled}
-          sx={{ p: { xs: 0.1, sm: 0.25, md: 0.5 } }}
+          sx={{ p: { xs: 0.3, sm: 0.25, md: 0.5 } }}
         >
-          <Forward10Icon sx={{ fontSize: { xs: 12, sm: 16, md: 18 }, color: hasAudio ? "inherit" : "#d1d5db" }} />
+          <Forward10Icon sx={{ fontSize: { xs: 18, sm: 16, md: 18 }, color: hasAudio ? "inherit" : "#d1d5db" }} />
         </IconButton>
       </Box>
 
@@ -215,7 +216,7 @@ export default function CustomAudioPlayer({ src }: Props) {
         sx={{
           flexGrow: 1,
           width: "auto",
-          mx: { xs: 1, sm: 0.75, md: 1 },
+          mx: { xs: 1.5, sm: 0.75, md: 1 },
           "& .MuiSlider-root": {
             padding: { xs: "14px 0", sm: "16px 0", md: "18px 0" },
           },
@@ -295,13 +296,14 @@ export default function CustomAudioPlayer({ src }: Props) {
         variant="caption" 
         sx={{ 
           display: { xs: "block", md: "none" },
-          fontSize: { xs: "0.6rem", sm: "0.7rem" },
+          fontSize: { xs: "0.7rem", sm: "0.7rem" },
           fontWeight: "medium",
           color: hasAudio ? "#6b7280" : "#9ca3af",
-          minWidth: { xs: "50px", sm: "65px" },
+          minWidth: { xs: "60px", sm: "65px" },
           textAlign: "center",
           flexShrink: 0,
           ml: { xs: 0.5, sm: 1 },
+          mr: { xs: 0.5, sm: 0 },
         }}
       >
         {hasAudio ? `${formatTime(time)} / ${formatTime(duration)}` : "00:00 / 00:00"}
@@ -310,7 +312,7 @@ export default function CustomAudioPlayer({ src }: Props) {
       {/* volume */}
       <VolumeUpIcon 
         sx={{ 
-          fontSize: { xs: 14, sm: 16, md: 18 }, 
+          fontSize: { xs: 18, sm: 16, md: 18 }, 
           opacity: disabled ? 0.3 : 1,
           color: hasAudio ? "#6b7280" : "#d1d5db",
           display: { xs: "none", lg: "block" },

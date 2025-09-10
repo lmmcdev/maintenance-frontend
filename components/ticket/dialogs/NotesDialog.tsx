@@ -95,8 +95,16 @@ export function NotesDialog({
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-3 sm:p-4">
-      <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 max-w-2xl w-full max-h-[85vh] overflow-hidden mx-2 shadow-lg">
+    <div className="fixed inset-0 z-50">
+      {/* Backdrop with blur effect */}
+      <div 
+        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      {/* Modal content */}
+      <div className="relative flex items-center justify-center min-h-full p-3 sm:p-4">
+        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 max-w-2xl w-full max-h-[85vh] overflow-hidden mx-2 shadow-2xl">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#00a1ff] rounded-full flex items-center justify-center">
@@ -205,6 +213,7 @@ export function NotesDialog({
               <span>{t("close")}</span>
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>

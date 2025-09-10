@@ -24,8 +24,16 @@ export function AssignmentDialog({
     : `${names.length} people (${names.slice(0, 2).join(", ")}${names.length > 2 ? `, and ${names.length - 2} more` : ""})`;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-xs sm:max-w-md w-full shadow-2xl mx-2">
+    <div className="fixed inset-0 z-50">
+      {/* Backdrop with blur effect */}
+      <div 
+        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+        onClick={onCancel}
+      />
+      
+      {/* Modal content */}
+      <div className="relative flex items-center justify-center min-h-full p-2 sm:p-4">
+        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-xs sm:max-w-md w-full shadow-2xl mx-2">
         <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">
           {isReassign ? "Reassign Ticket" : "Assign Ticket"}
         </h3>
@@ -64,6 +72,7 @@ export function AssignmentDialog({
           >
             {isReassign ? "Reassign" : "Assign"}
           </button>
+        </div>
         </div>
       </div>
     </div>

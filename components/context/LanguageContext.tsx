@@ -127,6 +127,12 @@ const translations: Translations = {
     "ticket.actions": "Ticket actions",
     actions: "Actions",
 
+    // Button labels
+    "button.done": "Done",
+    "button.cancel": "Cancel",
+    "button.details": "Details", 
+    "button.notes": "Notes",
+
     // Notes
     "notes.title": "Ticket Notes",
     "notes.subtitle": "View and manage ticket notes",
@@ -267,6 +273,12 @@ const translations: Translations = {
     // Actions menu
     "ticket.actions": "Acciones del ticket",
     actions: "Acciones",
+
+    // Button labels
+    "button.done": "Terminado",
+    "button.cancel": "Cancelar", 
+    "button.details": "Detalles",
+    "button.notes": "Notas",
 
     // Notes
     "notes.title": "Notas del Ticket",
