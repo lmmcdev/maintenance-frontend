@@ -142,6 +142,13 @@ const translations: Translations = {
     "more.options": "More options",
     "view.cancelled.tickets": "View cancelled tickets",
     close: "Close",
+    
+    // Details
+    details: "Details",
+    "ticket.details": "Ticket Details",
+    "ticket.information": "Ticket Information",
+    description: "Description",
+    phone: "Phone",
   },
   es: {
     // Header
@@ -276,6 +283,13 @@ const translations: Translations = {
     "more.options": "Más opciones",
     "view.cancelled.tickets": "Ver tickets cancelados",
     close: "Cerrar",
+    
+    // Details
+    details: "Detalles",
+    "ticket.details": "Detalles del Ticket",
+    "ticket.information": "Información del Ticket",
+    description: "Descripción",
+    phone: "Teléfono",
   },
 };
 

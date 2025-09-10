@@ -5,6 +5,7 @@ import React, { useState, useRef, useEffect } from "react";
 type AssignmentSelectorProps = {
   selectedNames: string[];
   onChange: (names: string[]) => void;
+  onAssign?: (names: string[]) => void;
   disabled: boolean;
   canAssign: boolean;
   isReassignment?: boolean;
@@ -14,6 +15,7 @@ type AssignmentSelectorProps = {
 export function AssignmentSelector({
   selectedNames,
   onChange,
+  onAssign,
   disabled,
   canAssign,
   isReassignment,
@@ -57,8 +59,10 @@ export function AssignmentSelector({
     }
     if (selectedNames.length === 0) return;
     
-    // Trigger assignment process
-    onChange(selectedNames);
+    // Trigger assignment process via onAssign callback
+    if (onAssign) {
+      onAssign(selectedNames);
+    }
     setIsOpen(false);
   };
 
