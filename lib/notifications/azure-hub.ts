@@ -74,7 +74,7 @@ class AzureNotificationHubService {
     accessToken?: string
   ): Promise<DeviceRegistrationResponse> {
     // Generate unique installation ID based on user
-    const installationId = userId ? `user-${userId.substring(0, 8)}` : `anon-${Date.now()}`;
+    const installationId = userId ? `usermaintenance-${userId.substring(0, 8)}` : `anon-${Date.now()}`;
     
     // Transform subscription to pushChannel format
     const subscriptionJson = subscription.toJSON();
