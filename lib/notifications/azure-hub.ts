@@ -70,32 +70,97 @@ class AzureNotificationHubService {
   async registerDevice(
     subscription: PushSubscription, 
     userId?: string, 
-    tags?: string[]
+    tags?: string[],
+    accessToken?: string
   ): Promise<DeviceRegistrationResponse> {
-    const deviceToken = JSON.stringify(subscription);
+    // Generate unique installation ID based on user
+    const installationId = userId ? `user-${userId.substring(0, 8)}` : `anon-${Date.now()}`;
     
-    const registrationData: DeviceRegistrationRequest = {
-      deviceToken,
-      platform: 'web',
-      userId,
-      tags
+    // Transform subscription to pushChannel format
+    const subscriptionJson = subscription.toJSON();
+    const pushChannel = {
+      endpoint: subscriptionJson.endpoint!,
+      p256dh: subscriptionJson.keys!.p256dh,
+      auth: subscriptionJson.keys!.auth
+    };
+    
+    const registrationData = {
+      installationId,
+      platform: 'browser',
+      pushChannel,
+      tags: tags || ['dept:Maintenance']
     };
 
     try {
-      const response = await fetch(this.backendUrl, {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add Authorization header if access token is provided
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+        console.log('🔑 Using access token for Notification Hub registration');
+        console.log('🔍 Bearer token details:', {
+          tokenLength: accessToken.length,
+          tokenStart: accessToken.substring(0, 10) + '...',
+          authorizationHeader: `Bearer ${accessToken.substring(0, 10)}...`
+        });
+      } else {
+        console.log('⚠️ No access token provided for Notification Hub registration');
+      }
+
+      console.log('📤 Notification Hub registration request:', {
+        url: this.backendUrl,
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          ...headers,
+          'Authorization': headers['Authorization'] ? `Bearer ${headers['Authorization'].substring(7, 17)}...` : 'Not provided'
         },
+        bodyData: {
+          installationId: registrationData.installationId,
+          platform: registrationData.platform,
+          tags: registrationData.tags,
+          pushChannel: {
+            endpoint: registrationData.pushChannel.endpoint.substring(0, 50) + '...',
+            p256dh: registrationData.pushChannel.p256dh.substring(0, 20) + '...',
+            auth: registrationData.pushChannel.auth.substring(0, 10) + '...'
+          }
+        }
+      });
+
+      const response = await fetch(this.backendUrl, {
+        method: 'POST',
+        headers,
         body: JSON.stringify(registrationData)
+      });
+
+      console.log('📥 Notification Hub registration response:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: {
+          'content-type': response.headers.get('content-type'),
+          'authorization': response.headers.get('www-authenticate') || 'Not present'
+        }
       });
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('❌ Notification Hub registration failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorBody: errorText,
+          wasTokenProvided: !!accessToken
+        });
         throw new Error(`Registration failed: ${response.status} ${errorText}`);
       }
 
       const result = await response.json();
+      console.log('✅ Notification Hub registration successful:', {
+        registrationId: result.registrationId,
+        message: result.message,
+        tokenUsed: !!accessToken
+      });
+      
       return {
         success: true,
         registrationId: result.registrationId,
@@ -109,7 +174,7 @@ class AzureNotificationHubService {
     }
   }
 
-  async registerForNotifications(userId?: string, tags?: string[]): Promise<DeviceRegistrationResponse> {
+  async registerForNotifications(userId?: string, tags?: string[], accessToken?: string): Promise<DeviceRegistrationResponse> {
     try {
       const permission = await this.requestNotificationPermission();
       
@@ -121,7 +186,7 @@ class AzureNotificationHubService {
       }
 
       const subscription = await this.subscribeToPushNotifications();
-      const result = await this.registerDevice(subscription, userId, tags);
+      const result = await this.registerDevice(subscription, userId, tags, accessToken);
       
       return result;
     } catch (error) {
@@ -139,8 +204,7 @@ class AzureNotificationHubService {
       .replace(/_/g, '/');
 
     const rawData = window.atob(base64);
-    const buffer = new ArrayBuffer(rawData.length);
-    const outputArray = new Uint8Array(buffer);
+    const outputArray = new Uint8Array(rawData.length);
 
     for (let i = 0; i < rawData.length; ++i) {
       outputArray[i] = rawData.charCodeAt(i);

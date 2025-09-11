@@ -79,10 +79,58 @@ export const msalConfig: Configuration = {
   }
 };
 
+// API Scope Configurations
+export const API_SCOPES = {
+  // Microsoft Graph scopes
+  MICROSOFT_GRAPH: {
+    USER_READ: "User.Read",
+    PROFILE: "profile", 
+    OPENID: "openid",
+    EMAIL: "email"
+  },
+  
+  // Custom API scopes
+  MAINTENANCE_API: {
+    ACCESS_AS_USER: "api://1c2fd2b9-6e0c-4f13-a3e9-40e53d7f4131/access_as_user"
+  },
+  
+  NOTIFICATION_HUB_API: {
+    REGISTER_DEVICE: "api://aeec4f18-85f7-4c67-8498-39d4af1440c1/register_device"
+  }
+} as const;
+
+// Scope request configurations for different purposes
+export const SCOPE_REQUESTS = {
+  // Basic login scopes (for initial authentication)
+  LOGIN: {
+    scopes: [
+      API_SCOPES.MICROSOFT_GRAPH.USER_READ,
+      API_SCOPES.MICROSOFT_GRAPH.PROFILE,
+      API_SCOPES.MICROSOFT_GRAPH.OPENID,
+      API_SCOPES.MICROSOFT_GRAPH.EMAIL,
+      API_SCOPES.MAINTENANCE_API.ACCESS_AS_USER
+    ],
+    prompt: "select_account"
+  },
+  
+  // Maintenance API access
+  MAINTENANCE_API: {
+    scopes: [API_SCOPES.MAINTENANCE_API.ACCESS_AS_USER],
+    account: null // Will be set dynamically
+  },
+  
+  // Notification Hub device registration
+  NOTIFICATION_HUB: {
+    scopes: [API_SCOPES.NOTIFICATION_HUB_API.REGISTER_DEVICE],
+    account: null // Will be set dynamically
+  }
+} as const;
+
 // Add scopes here for ID token to be used at Microsoft identity platform endpoints.
+// Convert readonly scopes to mutable array for RedirectRequest compatibility
 export const loginRequest: RedirectRequest = {
-  scopes: ["User.Read", "profile", "openid", "email"],
-  prompt: "select_account"
+  ...SCOPE_REQUESTS.LOGIN,
+  scopes: [...SCOPE_REQUESTS.LOGIN.scopes]
 };
 
 // Add the endpoints here for Microsoft Graph API services you'd like to use.
