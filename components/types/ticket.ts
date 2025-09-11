@@ -50,7 +50,7 @@ export type Ticket = {
   assignee?: Person | null;
   resolvedAt?: string | null;
   closedAt?: string | null;
-  audio?: Attachment | null;
+  audio?: Attachment[] | Attachment | null;
   source?: TicketSource | null;
   location?: TicketLocation | null;
   // Legacy support

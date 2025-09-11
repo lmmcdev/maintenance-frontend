@@ -9,15 +9,17 @@ import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import PauseRoundedIcon from "@mui/icons-material/PauseRounded";
 import { useLanguage } from "./context/LanguageContext";
 
-type Props = { src?: string | null };
+type Props = { src?: string | null; isCall?: boolean };
 
-export default function CustomAudioPlayer({ src }: Props) {
-  const { t } = useLanguage();
+export default function CustomAudioPlayer({ src, isCall = false }: Props) {
+  const { t, language } = useLanguage();
   const audio = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
+  const [loadError, setLoadError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // (re)crear el elemento de audio cuando cambia src
   useEffect(() => {
@@ -31,21 +33,38 @@ export default function CustomAudioPlayer({ src }: Props) {
       setPlaying(false);
       setTime(0);
       setDuration(0);
+      setLoadError(false);
+      setIsLoading(false);
       return;
     }
+    setIsLoading(true);
+    setLoadError(false);
     const a = new Audio(src);
     audio.current = a;
 
-    const onLoaded = () => setDuration(a.duration || 0);
+    const onLoaded = () => {
+      setDuration(a.duration || 0);
+      setIsLoading(false);
+      setLoadError(false);
+    };
     const onTime = () => setTime(a.currentTime || 0);
+    const onError = () => {
+      setLoadError(true);
+      setIsLoading(false);
+      setDuration(0);
+    };
 
     a.addEventListener("loadedmetadata", onLoaded);
     a.addEventListener("timeupdate", onTime);
+    a.addEventListener("error", onError);
+    a.addEventListener("abort", onError);
 
     return () => {
       a.pause();
       a.removeEventListener("loadedmetadata", onLoaded);
       a.removeEventListener("timeupdate", onTime);
+      a.removeEventListener("error", onError);
+      a.removeEventListener("abort", onError);
       audio.current = null;
     };
   }, [src]);
@@ -86,8 +105,8 @@ export default function CustomAudioPlayer({ src }: Props) {
   const disabled = !src || duration === 0;
   const hasAudio = !!src && duration > 0;
 
-  // If no source or duration is 0, show only message
-  if (!src || duration === 0) {
+  // If no source, loading, or error, show appropriate message
+  if (!src || isLoading || (loadError && duration === 0)) {
     return (
       <Box
         sx={{
@@ -110,7 +129,14 @@ export default function CustomAudioPlayer({ src }: Props) {
             textAlign: "center",
           }}
         >
-          {!src ? t("no.audio.file") : t("audio.invalid")}
+          {!src ? 
+            (isCall ? 
+              (language === "es" ? "Audio de llamada siendo procesado..." : "Call audio being processed...") : 
+              t("no.audio.file")
+            ) : 
+           isLoading ? (language === "es" ? "Cargando audio..." : "Loading audio...") : 
+           loadError ? t("audio.invalid") : 
+           t("audio.invalid")}
         </Typography>
       </Box>
     );

@@ -502,15 +502,22 @@ function TicketDetailPageContent() {
           </div>
 
           {/* Audio Section */}
-          {(ticket.audioUrl || ticket.audio?.url) && (
+          {(ticket.audioUrl || 
+            (Array.isArray(ticket.audio) ? ticket.audio?.[0]?.url : ticket.audio?.url) || 
+            ticket.source === "RINGCENTRAL") && (
             <div className="rounded-xl sm:rounded-2xl border border-gray-200/60 bg-white p-3 sm:p-4 md:p-6 shadow-lg sm:shadow-2xl" style={{ boxShadow: '0px 4px 16px rgba(239, 241, 246, 0.8), 0px 8px 24px rgba(239, 241, 246, 1)' }}>
               <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 rounded-lg sm:rounded-xl border border-blue-200/60 p-3 sm:p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-1.5 sm:w-2 h-4 sm:h-6 bg-[#00a1ff] rounded-full"></div>
-                  <h3 className="font-bold text-[#00a1ff] text-base sm:text-lg">Audio</h3>
+                  <h3 className="font-bold text-[#00a1ff] text-base sm:text-lg">{language === "es" ? "Audio" : "Audio"}</h3>
                 </div>
                 <div className="min-w-0">
-                  <CustomAudioPlayer src={ticket.audioUrl || ticket.audio?.url || null} />
+                  <CustomAudioPlayer 
+                    src={ticket.audioUrl || 
+                         (Array.isArray(ticket.audio) ? ticket.audio?.[0]?.url : ticket.audio?.url) || 
+                         null} 
+                    isCall={ticket.source === "RINGCENTRAL"}
+                  />
                 </div>
               </div>
             </div>
