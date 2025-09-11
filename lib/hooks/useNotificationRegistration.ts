@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '../auth/hooks';
 import { azureNotificationHub } from '../notifications/azure-hub';
+import { NOTIFICATION_CONFIG } from '../config/notifications';
 
 export function useNotificationRegistration() {
   const { isAuthenticated, account } = useAuth();
@@ -19,8 +20,8 @@ export function useNotificationRegistration() {
       try {
         // Register service worker
         if ('serviceWorker' in navigator) {
-          await navigator.serviceWorker.register('/sw.js', {
-            scope: '/'
+          await navigator.serviceWorker.register(NOTIFICATION_CONFIG.SW_PATH, {
+            scope: NOTIFICATION_CONFIG.SW_SCOPE
           });
           console.log('✅ Service Worker registered successfully');
         }
@@ -38,7 +39,7 @@ export function useNotificationRegistration() {
         // Register with Azure Notification Hub
         const result = await azureNotificationHub.registerForNotifications(
           userId,
-          ['maintenance']
+          NOTIFICATION_CONFIG.DEFAULT_TAGS
         );
 
         if (result.success) {

@@ -1,9 +1,7 @@
 // lib/notifications/azure-hub.ts
 // Azure Notification Hub registration utility
 
-// Configuration constants
-const DEFAULT_BACKEND_URL = 'https://cservicesapi.azurewebsites.net/api/registerDevice';
-const VAPID_PUBLIC_KEY = 'BPSp8t7UKlJGnDei4H9RV79DfvTkm2isH4gB0GANYuj1t3yqXfbbjftCl2dH8UWnl67DfJclNcpo7Ul6sorFLek';
+import { NOTIFICATION_CONFIG } from '../config/notifications';
 
 export type DeviceRegistrationRequest = {
   deviceToken: string;
@@ -28,8 +26,8 @@ class AzureNotificationHubService {
   private vapidPublicKey: string;
 
   constructor(options: NotificationHubOptions = {}) {
-    this.backendUrl = options.backendUrl || DEFAULT_BACKEND_URL;
-    this.vapidPublicKey = options.vapidPublicKey || VAPID_PUBLIC_KEY;
+    this.backendUrl = options.backendUrl || NOTIFICATION_CONFIG.BACKEND_URL;
+    this.vapidPublicKey = options.vapidPublicKey || NOTIFICATION_CONFIG.VAPID_PUBLIC_KEY;
   }
 
   async requestNotificationPermission(): Promise<NotificationPermission> {
@@ -141,11 +139,13 @@ class AzureNotificationHubService {
       .replace(/_/g, '/');
 
     const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
+    const buffer = new ArrayBuffer(rawData.length);
+    const outputArray = new Uint8Array(buffer);
 
     for (let i = 0; i < rawData.length; ++i) {
       outputArray[i] = rawData.charCodeAt(i);
     }
+    
     return outputArray;
   }
 }
