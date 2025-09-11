@@ -176,6 +176,44 @@ class AzureNotificationHubService {
     }
   }
 
+  async deleteInstallation(installationId: string, accessToken?: string): Promise<DeviceRegistrationResponse> {
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+
+      console.log('🗑️ Deleting previous installation:', installationId);
+
+      const response = await fetch(`${this.backendUrl}/${installationId}`, {
+        method: 'DELETE',
+        mode: 'cors',
+        credentials: 'omit',
+        headers
+      });
+
+      if (!response.ok && response.status !== 404) {
+        console.warn('⚠️ Failed to delete previous installation:', response.status);
+      } else {
+        console.log('✅ Previous installation deleted or didn\'t exist');
+      }
+
+      return {
+        success: true,
+        message: 'Installation deleted'
+      };
+    } catch (error) {
+      console.warn('⚠️ Error deleting installation:', error);
+      return {
+        success: true,
+        message: 'Delete attempt completed'
+      };
+    }
+  }
+
   async registerForNotifications(userId?: string, tags?: string[], accessToken?: string): Promise<DeviceRegistrationResponse> {
     try {
       const permission = await this.requestNotificationPermission();
@@ -188,6 +226,13 @@ class AzureNotificationHubService {
       }
 
       const subscription = await this.subscribeToPushNotifications();
+      
+      // Generate installation ID first to delete any previous registration
+      const installationId = userId ? `user-${userId.substring(0, 8)}` : `anon-${Date.now()}`;
+      
+      // Delete previous installation to avoid duplicates
+      await this.deleteInstallation(installationId, accessToken);
+      
       const result = await this.registerDevice(subscription, userId, tags, accessToken);
       
       return result;
