@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useLanguage } from "../context/LanguageContext";
 
 type AssignmentSelectorProps = {
   selectedNames: string[];
@@ -21,6 +22,7 @@ export function AssignmentSelector({
   isReassignment,
   peopleList
 }: AssignmentSelectorProps) {
+  const { t: translate, language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -68,7 +70,7 @@ export function AssignmentSelector({
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-      <span className="text-gray-600 text-xs sm:text-sm min-w-[48px] sm:min-w-[64px] font-semibold">Assign:</span>
+      <span className="text-gray-600 text-xs sm:text-sm min-w-[48px] sm:min-w-[64px] font-semibold">{translate("assign")}:</span>
       <div className="flex-1 relative" ref={containerRef}>
         {/* Main button */}
         <button
@@ -78,10 +80,12 @@ export function AssignmentSelector({
         >
           <span>
             {selectedNames.length === 0 
-              ? (isReassignment ? "Reassign to..." : "Select assignee(s)...") 
+              ? (isReassignment 
+                  ? (language === "es" ? "Reasignar a..." : "Reassign to...") 
+                  : (language === "es" ? "Seleccionar asignado(s)..." : "Select assignee(s)...")) 
               : selectedNames.length === 1 
                 ? selectedNames[0]
-                : `${selectedNames.length} people selected`
+                : `${selectedNames.length} ${language === "es" ? "personas seleccionadas" : "people selected"}`
             }
           </span>
           <svg 
@@ -102,7 +106,7 @@ export function AssignmentSelector({
             <div className="p-2 sm:p-3 border-b border-gray-100">
               <input
                 type="text"
-                placeholder="Search people..."
+                placeholder={language === "es" ? "Buscar personas..." : "Search people..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:border-[#00A1FF] focus:ring-1 focus:ring-[#00A1FF]/20 outline-none"
@@ -135,7 +139,7 @@ export function AssignmentSelector({
               
               {filteredPeople.length === 0 && (
                 <div className="px-2 sm:px-3 py-4 text-xs sm:text-sm text-gray-500 text-center">
-                  No people found
+                  {language === "es" ? "No se encontraron personas" : "No people found"}
                 </div>
               )}
             </div>
@@ -150,13 +154,15 @@ export function AssignmentSelector({
                   }}
                   className="px-3 py-1.5 text-xs sm:text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
-                  Clear
+                  {language === "es" ? "Limpiar" : "Clear"}
                 </button>
                 <button
                   onClick={handleAssignClick}
                   className="px-3 py-1.5 text-xs sm:text-sm bg-[#00A1FF] text-white rounded-md hover:bg-[#0081cc] transition-colors"
                 >
-                  {isReassignment ? 'Reassign' : 'Assign'} ({selectedNames.length})
+                  {isReassignment 
+                    ? (language === "es" ? "Reasignar" : "Reassign") 
+                    : (language === "es" ? "Asignar" : "Assign")} ({selectedNames.length})
                 </button>
               </div>
             )}

@@ -1,5 +1,31 @@
 export type TicketStatus = "NEW" | "OPEN" | "DONE" | "CANCELLED";
 
+export type TicketSource = "EMAIL" | "RINGCENTRAL" | "MANUAL";
+
+export type LocationCategory = "ADULT DAY CARE" | "MEDICAL CENTER" | "Pharmacy" | "OTC" | "Research" | "Corporate";
+
+export type SubLocation = 
+  // ADC Locations
+  "ADC_HIALEAH_WEST" | "ADC_HIALEAH_EAST" | "ADC_BIRD_ROAD" | "ADC_CUTLER_BAY" | 
+  "ADC_HIALEAH" | "ADC_HIATUS" | "ADC_HOLLYWOOD" | "ADC_HOMESTEAD" | 
+  "ADC_KENDALL" | "ADC_MARLINS_PARK" | "ADC_MIAMI_27TH" | "ADC_MIAMI_37TH" |
+  "ADC_MIAMI_GARDENS" | "ADC_MIAMI_LAKES" | "ADC_NORTH_MIAMI" | "ADC_NORTH_MIAMI_BEACH" |
+  "ADC_PEMBROKE_PINES" | "ADC_PLANTATION" | "ADC_TAMARAC" | "ADC_WEST_PALM_BEACH" | "ADC_WESTCHESTER" |
+  
+  // Medical Center Locations
+  "HIALEAH_MC" | "HIALEAH_WEST_MC" | "HIALEAH_EAST_MC" | "BIRD_ROAD_MC" | 
+  "HIATUS_MC" | "PEMBROKE_PINES_MC" | "PLANTATION_MC" |
+  "WEST_PALM_BEACH_MC" | "HOLLYWOOD_MC" | "KENDALL_MC" | "HOMESTEAD_MC" |
+  "CUTLER_RIDGE_MC" | "TAMARAC_MC" | "WESTCHESTER_MC" | "NORTH_MIAMI_BEACH_MC" |
+  "MIAMI_GARDENS_MC" | "MARLINS_PARK_MC" | "MIAMI_27TH_MC" |
+  "HIALEAH_GARDENS_SPECIALIST" | "BIRD_ROAD_SPECIALIST";
+  
+
+export type TicketLocation = {
+  category: LocationCategory;
+  subLocation?: SubLocation;
+};
+
 export type Attachment = {
   id: string;
   filename: string;
@@ -25,6 +51,8 @@ export type Ticket = {
   resolvedAt?: string | null;
   closedAt?: string | null;
   audio?: Attachment | null;
+  source?: TicketSource | null;
+  location?: TicketLocation | null;
   // Legacy support
   audioUrl?: string | null;
 };

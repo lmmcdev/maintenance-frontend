@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { TicketStatus, Ticket } from "../types/ticket";
+import { TicketStatus, Ticket, TicketSource } from "../types/ticket";
 import { StatusBadge } from "./StatusBadge";
 import { KebabMenu } from "./KebabMenu";
 import { CategorySelector } from "./CategorySelector";
@@ -25,6 +25,19 @@ function fmtDate(iso?: string | null) {
     return new Date(iso).toLocaleString();
   } catch {
     return String(iso);
+  }
+}
+
+function getSourceDisplay(source?: TicketSource | null) {
+  switch (source) {
+    case "EMAIL":
+      return { text: "Email", icon: "M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z", color: "text-blue-600" };
+    case "RINGCENTRAL":
+      return { text: "Call", icon: "M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z", color: "text-green-600" };
+    case "MANUAL":
+      return { text: "Manual", icon: "M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z", color: "text-gray-600" };
+    default:
+      return { text: "Unknown", icon: "M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z", color: "text-gray-500" };
   }
 }
 
@@ -165,6 +178,15 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
             <StatusBadge status={t.status} />
           </div>
           <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold leading-tight text-gray-900">{t.title}</h3>
+          {/* Creation Date */}
+          <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span className="font-medium">
+              Created {t.createdAt ? fmtDate(t.createdAt) : 'N/A'}
+            </span>
+          </div>
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-1 sm:gap-2 order-1 sm:order-2">
           {/* Quick Action Buttons */}
@@ -233,25 +255,36 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
       {/* Description */}
       <div className="text-xs sm:text-sm md:text-base text-gray-700 mb-3 sm:mb-4 leading-relaxed">{truncate(t.description, 160)}</div>
       
+      {/* Ticket Info */}
+      <div className="mb-4 sm:mb-5">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-lg sm:rounded-xl border border-gray-200/60 p-3 sm:p-4 shadow-sm">
+          <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 xs:gap-4">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="font-medium">Created {fmtDate(t.createdAt)}</span>
+            </div>
+            {/* Source - Always show */}
+            <div className="flex items-center gap-1 text-xs font-medium text-gray-600">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              <span>{t.source || 'Unknown'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Audio Section */}
       {(t.audioUrl) && (
         <div className="mb-4 sm:mb-5">
           <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 rounded-lg sm:rounded-xl border border-blue-200/60 p-3 sm:p-4 shadow-sm">
-            <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 xs:gap-3 mb-3">
-              <div className="flex items-center gap-1 sm:gap-2">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M6 12h.01M9 16v-4a3 3 0 016 0v4" />
-                </svg>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span className="font-medium">Created {fmtDate(t.createdAt)}</span>
-                </div>
-              </div>
+            <div className="flex items-center gap-1 sm:gap-2 mb-3">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M6 12h.01M9 16v-4a3 3 0 016 0v4" />
+              </svg>
+              <span className="text-sm font-medium text-blue-700">Audio Recording</span>
             </div>
             <div>
               <CustomAudioPlayer src={t.audioUrl || null} />

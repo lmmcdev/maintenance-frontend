@@ -7,11 +7,13 @@ import { LoginButton } from "../../components/auth/LoginButton";
 import { LogoutButton } from "../../components/auth/LogoutButton";
 import { UserProfile } from "../../components/auth/UserProfile";
 import { LanguageToggle } from "../../components/ui/LanguageToggle";
+import { useLanguage } from "../../components/context/LanguageContext";
 
 
 export function Nav() {
   const { isAuthenticated } = useAuth();
   const pathname = usePathname();
+  const { language } = useLanguage();
 
   return (
     <nav className="bg-[#00A1FF] shadow-blue-500/30 shadow-lg border-b border-blue-600/50 backdrop-blur-md relative z-30">
@@ -52,7 +54,7 @@ export function Nav() {
                     : 'text-white hover:bg-white/20'
                 }`}
               >
-                Dashboard
+                {language === "es" ? "Tablero" : "Dashboard"}
               </Link>
             </div>
           )}
@@ -91,7 +93,7 @@ export function Nav() {
                     : 'text-white hover:bg-white/20'
                 }`}
               >
-                Dashboard
+                {language === "es" ? "Tablero" : "Dashboard"}
               </Link>
             </div>
           </div>

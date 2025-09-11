@@ -2,14 +2,16 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Ticket } from "@/components/types/ticket";
+import { Ticket, TicketSource } from "@/components/types/ticket";
 import { StatusBadge } from "@/components/ticket/StatusBadge";
 import { CategorySelector } from "@/components/ticket/CategorySelector";
 import { PriorityRow } from "@/components/ticket/PriorityRow";
 import { AssignmentSelector } from "@/components/ticket/AssignmentSelector";
+import { LocationSelector } from "@/components/ticket/LocationSelector";
 import { CancelDialog } from "@/components/ticket/dialogs/CancelDialog";
 import { AssignmentDialog } from "@/components/ticket/dialogs/AssignmentDialog";
 import { NotesDialog } from "@/components/ticket/dialogs/NotesDialog";
+import { ImageGalleryDialog } from "@/components/ticket/dialogs/ImageGalleryDialog";
 import CustomAudioPlayer from "@/components/CustomAudioPlayer";
 import { patchTicket, patchTicketAssignees, patchStatus, cancelTicket, searchPersons } from "@/components/api/ticketApi";
 import { useStaticData } from "@/components/context/StaticDataContext";
@@ -30,11 +32,13 @@ function TicketDetailPageContent() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelNote, setCancelNote] = useState("");
   const [showNotesDialog, setShowNotesDialog] = useState(false);
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [ticketImages, setTicketImages] = useState<any[]>([]);
 
   const ticketId = params.id as string;
   const apiBase = process.env.NEXT_PUBLIC_API_BASE;
   const { persons, peopleList } = useStaticData();
-  const { t: translate } = useLanguage();
+  const { t: translate, language } = useLanguage();
 
   useEffect(() => {
     if (!ticketId || !apiBase) return;
@@ -232,6 +236,105 @@ function TicketDetailPageContent() {
     }
   };
 
+  const getSourceDisplay = (source?: TicketSource | null) => {
+    const texts = {
+      en: {
+        EMAIL: "Email",
+        RINGCENTRAL: "Call", 
+        MANUAL: "Manual",
+        UNKNOWN: "Unknown"
+      },
+      es: {
+        EMAIL: "Email",
+        RINGCENTRAL: "Llamada",
+        MANUAL: "Manual", 
+        UNKNOWN: "Desconocido"
+      }
+    };
+
+    const lang = language === "es" ? "es" : "en";
+
+    switch (source) {
+      case "EMAIL":
+        return { text: texts[lang].EMAIL, icon: "M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z", color: "text-blue-600" };
+      case "RINGCENTRAL":
+        return { text: texts[lang].RINGCENTRAL, icon: "M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z", color: "text-green-600" };
+      case "MANUAL":
+        return { text: texts[lang].MANUAL, icon: "M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z", color: "text-gray-600" };
+      default:
+        return { text: texts[lang].UNKNOWN, icon: "M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z", color: "text-gray-500" };
+    }
+  };
+
+  const getLocationDisplay = (location?: { category: string; subLocation?: string } | null) => {
+    if (!location) return null;
+
+    const locationLabels = {
+      "ADULT DAY CARE": language === "es" ? "Centro de Día" : "Adult Day Care",
+      "MEDICAL CENTER": language === "es" ? "Centro Médico" : "Medical Center", 
+      "Pharmacy": "Pharmacy",
+      "OTC": "OTC",
+      "Research": "Research",
+      "Corporate": "Corporate"
+    };
+
+    const subLocationLabels = {
+      // Adult Day Care locations
+      ADC_HIALEAH_WEST: "ADC Hialeah West",
+      ADC_HIALEAH_EAST: "ADC Hialeah East",
+      ADC_BIRD_ROAD: "ADC Bird Road",
+      ADC_CUTLER_BAY: "ADC Cutler Bay",
+      ADC_HIALEAH: "ADC Hialeah",
+      ADC_HIATUS: "ADC Hiatus",
+      ADC_HOLLYWOOD: "ADC Hollywood",
+      ADC_HOMESTEAD: "ADC Homestead",
+      ADC_KENDALL: "ADC Kendall",
+      ADC_MARLINS_PARK: "ADC Marlins Park",
+      ADC_MIAMI_27TH: "ADC Miami 27th",
+      ADC_MIAMI_37TH: "ADC Miami 37th",
+      ADC_MIAMI_GARDENS: "ADC Miami Gardens",
+      ADC_MIAMI_LAKES: "ADC Miami Lakes",
+      ADC_NORTH_MIAMI: "ADC North Miami",
+      ADC_NORTH_MIAMI_BEACH: "ADC North Miami Beach",
+      ADC_PEMBROKE_PINES: "ADC Pembroke Pines",
+      ADC_PLANTATION: "ADC Plantation",
+      ADC_TAMARAC: "ADC Tamarac",
+      ADC_WEST_PALM_BEACH: "ADC West Palm Beach",
+      ADC_WESTCHESTER: "ADC Westchester",
+      
+      // Medical Center locations
+      HIALEAH_MC: "Hialeah MC",
+      HIALEAH_WEST_MC: "Hialeah West MC",
+      HIALEAH_EAST_MC: "Hialeah East MC",
+      BIRD_ROAD_MC: "Bird Road MC",
+      HIATUS_MC: "Hiatus MC",
+      PEMBROKE_PINES_MC: "Pembroke Pines MC",
+      PLANTATION_MC: "Plantation MC",
+      WEST_PALM_BEACH_MC: "West Palm Beach MC",
+      HOLLYWOOD_MC: "Hollywood MC",
+      KENDALL_MC: "Kendall MC",
+      HOMESTEAD_MC: "Homestead MC",
+      CUTLER_RIDGE_MC: "Cutler Ridge MC",
+      TAMARAC_MC: "Tamarac MC",
+      WESTCHESTER_MC: "Westchester MC",
+      NORTH_MIAMI_BEACH_MC: "North Miami Beach MC",
+      MIAMI_GARDENS_MC: "Miami Gardens MC",
+      MARLINS_PARK_MC: "Marlins Park MC",
+      MIAMI_27TH_MC: "Miami 27th MC",
+      HIALEAH_GARDENS_SPECIALIST: "Hialeah Gardens Specialist",
+      BIRD_ROAD_SPECIALIST: "Bird Road Specialist"
+    };
+
+    const categoryText = locationLabels[location.category as keyof typeof locationLabels] || location.category;
+    const subLocationText = location.subLocation ? subLocationLabels[location.subLocation as keyof typeof subLocationLabels] || location.subLocation : null;
+
+    return {
+      text: subLocationText ? `${categoryText} - ${subLocationText}` : categoryText,
+      icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z",
+      color: "text-purple-600"
+    };
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="sticky top-0 z-50">
@@ -297,6 +400,17 @@ function TicketDetailPageContent() {
                   <span className="leading-none">{translate("button.notes")}</span>
                 </button>
 
+                {/* Images Button - Always visible */}
+                <button
+                  onClick={() => setShowImageGallery(true)}
+                  className="px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 active:bg-gray-100 transition-all duration-200 text-xs sm:text-sm font-medium shadow-sm hover:shadow-md active:shadow-sm flex items-center justify-center gap-1.5 flex-shrink-0 min-h-[36px]"
+                >
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="leading-none">{language === "es" ? "Imágenes" : "Images"}</span>
+                </button>
+
                 {/* Status-based Action Buttons */}
                 {ticket.status !== "CANCELLED" && (
                   <>
@@ -349,9 +463,41 @@ function TicketDetailPageContent() {
               <p className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-wrap">{ticket.description}</p>
             </div>
 
-            {/* Created Date */}
-            <div className="text-xs sm:text-sm text-gray-500">
-              <span className="font-medium">{translate("created")}</span> {formatDate(ticket.createdAt)}
+            {/* Created Date, Source & Location */}
+            <div className="space-y-2 text-xs sm:text-sm">
+              {/* Top row: Created date and Source */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-gray-500">
+                  <span className="font-medium">{translate("created")}</span> {formatDate(ticket.createdAt)}
+                </div>
+                {/* Source */}
+                {(() => {
+                  const sourceInfo = getSourceDisplay(ticket.source);
+                  return (
+                    <div className={`flex items-center gap-1 font-medium ${sourceInfo.color}`}>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sourceInfo.icon} />
+                      </svg>
+                      <span>{sourceInfo.text}</span>
+                    </div>
+                  );
+                })()}
+              </div>
+              
+              {/* Bottom row: Location (if exists) */}
+              {(() => {
+                const locationInfo = getLocationDisplay(ticket.location);
+                if (!locationInfo) return null;
+                
+                return (
+                  <div className={`flex items-center gap-1 font-medium ${locationInfo.color}`}>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={locationInfo.icon} />
+                    </svg>
+                    <span>{locationInfo.text}</span>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
@@ -428,6 +574,16 @@ function TicketDetailPageContent() {
 
               <CategorySelector t={ticket} apiBase={apiBase!} onChanged={reloadTicket} busy={!!busy} />
 
+              <LocationSelector
+                value={ticket.location}
+                onChange={(location) => {
+                  // For now, just log the change - backend integration comes later
+                  console.log('Location changed:', location);
+                  // In the future, this would call an API to update the ticket location
+                }}
+                disabled={!!busy}
+              />
+
               <AssignmentSelector
                 selectedNames={selectedAssigneeNames}
                 onChange={handleAssignmentChange}
@@ -475,6 +631,13 @@ function TicketDetailPageContent() {
           ticketId={ticket.id}
           apiBase={apiBase!}
           onClose={() => setShowNotesDialog(false)}
+        />
+
+        <ImageGalleryDialog
+          show={showImageGallery}
+          ticketId={ticket.id}
+          apiBase={apiBase!}
+          onClose={() => setShowImageGallery(false)}
         />
       </div>
     </div>

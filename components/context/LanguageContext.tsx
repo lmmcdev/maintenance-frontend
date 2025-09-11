@@ -160,7 +160,7 @@ const translations: Translations = {
     // Header
     tickets: "Tickets",
     "ticket.reporter": "Reportado por: ",
-    dashboard: "Panel",
+    dashboard: "Tablero",
     "tickets.subtitle":
       "Crear, categorizar, priorizar, asignar y dar seguimiento a tickets de mantenimiento.",
     "dashboard.subtitle": "Vista rápida del conteo de tickets y prioridades.",

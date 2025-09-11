@@ -10,6 +10,13 @@ type TicketNote = {
   createdAt: string;
   createdBy?: string;
   createdByName?: string;
+  attachments?: {
+    id: string;
+    filename: string;
+    contentType: string;
+    size?: number;
+    url?: string;
+  }[];
 };
 
 type NotesDialogProps = {
@@ -30,6 +37,9 @@ export function NotesDialog({
   const [newNote, setNewNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (show && ticketId) {
@@ -52,27 +62,95 @@ export function NotesDialog({
     }
   };
 
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const imageFiles = Array.from(files).filter(file => 
+      file.type.startsWith('image/')
+    );
+
+    if (imageFiles.length + selectedImages.length > 5) {
+      alert("Maximum 5 images allowed");
+      return;
+    }
+
+    setSelectedImages(prev => [...prev, ...imageFiles]);
+
+    // Create preview URLs
+    imageFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviewImages(prev => [...prev, e.target?.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    setPreviewImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadImages = async (): Promise<string[]> => {
+    if (selectedImages.length === 0) return [];
+
+    const formData = new FormData();
+    selectedImages.forEach((file, index) => {
+      formData.append(`images`, file);
+    });
+
+    try {
+      setUploading(true);
+      const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/attachments`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.data?.attachmentIds || [];
+      }
+      throw new Error("Upload failed");
+    } catch (error) {
+      console.error("Failed to upload images:", error);
+      throw error;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const addNote = async () => {
-    if (!newNote.trim()) return;
+    if (!newNote.trim() && selectedImages.length === 0) return;
     
     try {
       setAdding(true);
+      
+      // Upload images first if any
+      let attachmentIds: string[] = [];
+      if (selectedImages.length > 0) {
+        attachmentIds = await uploadImages();
+      }
+
       const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          content: newNote.trim(),
-          type: "general"
+          content: newNote.trim() || "Image attachment",
+          type: "general",
+          attachmentIds
         }),
       });
       
       if (response.ok) {
         setNewNote("");
+        setSelectedImages([]);
+        setPreviewImages([]);
         await loadNotes(); // Reload notes
       }
     } catch (error) {
       console.error("Failed to add note:", error);
-      alert(t("notes.error.add"));
+      alert("Failed to add note with images");
     } finally {
       setAdding(false);
     }
@@ -163,6 +241,30 @@ export function NotesDialog({
                       </div>
                     </div>
                     <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{note.content}</p>
+                    
+                    {/* Image attachments */}
+                    {note.attachments && note.attachments.length > 0 && (
+                      <div className="mt-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {note.attachments.filter(att => att.contentType.startsWith('image/')).map((attachment) => (
+                            <div key={attachment.id} className="relative group">
+                              <img
+                                src={attachment.url || `${apiBase}/api/v1/tickets/${ticketId}/attachments/${attachment.id}`}
+                                alt={attachment.filename}
+                                className="w-full h-20 sm:h-24 object-cover rounded-lg border border-gray-200 cursor-pointer hover:shadow-md transition-all duration-200"
+                                onClick={() => {
+                                  // Open in modal/lightbox
+                                  window.open(attachment.url || `${apiBase}/api/v1/tickets/${ticketId}/attachments/${attachment.id}`, '_blank');
+                                }}
+                              />
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <div className="truncate">{attachment.filename}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))
               )}
@@ -183,10 +285,59 @@ export function NotesDialog({
             className="w-full p-3 sm:p-4 border-2 border-gray-200 rounded-xl focus:border-[#00A1FF] focus:ring-2 focus:ring-[#00A1FF]/10 outline-none transition-all duration-300 resize-none text-sm bg-white shadow-sm hover:shadow-md"
             rows={3}
           />
+          
+          {/* Image Preview Section */}
+          {previewImages.length > 0 && (
+            <div className="mt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="text-sm text-gray-600 font-medium">Selected Images ({previewImages.length}/5)</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {previewImages.map((preview, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={preview}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-16 sm:h-20 object-cover rounded-lg border-2 border-gray-200"
+                    />
+                    <button
+                      onClick={() => removeImage(index)}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 rounded-b-lg">
+                      <div className="truncate">{selectedImages[index]?.name}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-4">
+            {/* Image Upload Button */}
+            <label className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 hover:border-gray-400 transition-all duration-300 text-xs font-semibold shadow-sm hover:shadow-md flex items-center justify-center gap-1 cursor-pointer">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Add Images
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+                disabled={adding || uploading}
+              />
+            </label>
+
             <button
               onClick={addNote}
-              disabled={!newNote.trim() || adding}
+              disabled={(!newNote.trim() && selectedImages.length === 0) || adding || uploading}
               className="px-2 sm:px-3 py-1 sm:py-1.5 bg-[#00a1ff] text-white border border-[#00a1ff] rounded-lg hover:bg-[#0091e6] hover:border-[#0091e6] disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed transition-all duration-300 text-xs font-semibold shadow-sm hover:shadow-md flex items-center justify-center gap-1"
             >
               {adding ? (

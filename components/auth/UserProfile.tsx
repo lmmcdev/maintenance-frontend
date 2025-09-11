@@ -1,13 +1,16 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../../lib/auth/hooks";
 import { useMsal } from "@azure/msal-react";
+import { useLanguage } from "../context/LanguageContext";
 
 export function UserProfile() {
   const { account, isAuthenticated, logout } = useAuth();
   const { instance } = useMsal();
+  const { language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [photoLoaded, setPhotoLoaded] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -21,63 +24,61 @@ export function UserProfile() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
   
-  if (!isAuthenticated || !account) {
+  // Memoize user data to prevent unnecessary recalculations
+  const userData = useMemo(() => {
+    if (!isAuthenticated || !account) return null;
+    
+    const displayName = account.name || account.username || "User";
+    const email = account.username;
+    const initials = displayName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    
+    return { displayName, email, initials };
+  }, [isAuthenticated, account?.name, account?.username]);
+
+  if (!userData) {
     return null;
   }
   
-  const displayName = account.name || account.username || "User";
-  const email = account.username;
-  const initials = displayName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-  
-  // Initialize profile photo on mount
-  useEffect(() => {
-    const fetchProfilePhoto = async () => {
-      if (!account) return;
-      
-      console.log('🔍 Account data:', account);
-      console.log('🔍 idTokenClaims:', account?.idTokenClaims);
-      console.log('🔍 localAccountId:', account?.localAccountId);
-      
-      // First try to get picture from ID token claims
-      if (account?.idTokenClaims?.picture) {
-        console.log('✅ Found picture in idTokenClaims:', account.idTokenClaims.picture);
-        setProfilePhoto(account.idTokenClaims.picture as string);
-        return;
-      }
-      
-      // If no picture in claims, try Microsoft Graph API
-      try {
-        console.log('🔧 Trying to get access token for Graph API');
-        
-        // Get access token for Microsoft Graph
-        const request = {
-          scopes: ["User.Read"],
-          account: account,
-        };
-        
-        const response = await instance.acquireTokenSilent(request);
-        console.log('✅ Got access token');
-        
-        // Try to fetch profile photo from Graph API
-        const graphResponse = await fetch('https://graph.microsoft.com/v1.0/me/photo/$value', {
-          headers: {
-            'Authorization': `Bearer ${response.accessToken}`,
-          },
-        });
-        
-        if (graphResponse.ok) {
-          const blob = await graphResponse.blob();
-          const photoUrl = URL.createObjectURL(blob);
-          console.log('✅ Successfully fetched profile photo from Graph API');
-          setProfilePhoto(photoUrl);
-        } else {
-          console.log('❌ Failed to fetch photo from Graph API:', graphResponse.status);
-        }
-      } catch (error) {
-        console.log('❌ Error fetching profile photo:', error);
-      }
-    };
+  // Fetch profile photo only once when account changes and photo hasn't been loaded
+  const fetchProfilePhoto = useCallback(async () => {
+    if (!account || photoLoaded) return;
     
+    setPhotoLoaded(true);
+    
+    // First try to get picture from ID token claims
+    if (account?.idTokenClaims?.picture) {
+      setProfilePhoto(account.idTokenClaims.picture as string);
+      return;
+    }
+    
+    // If no picture in claims, try Microsoft Graph API
+    try {
+      // Get access token for Microsoft Graph
+      const request = {
+        scopes: ["User.Read"],
+        account: account,
+      };
+      
+      const response = await instance.acquireTokenSilent(request);
+      
+      // Try to fetch profile photo from Graph API
+      const graphResponse = await fetch('https://graph.microsoft.com/v1.0/me/photo/$value', {
+        headers: {
+          'Authorization': `Bearer ${response.accessToken}`,
+        },
+      });
+      
+      if (graphResponse.ok) {
+        const blob = await graphResponse.blob();
+        const photoUrl = URL.createObjectURL(blob);
+        setProfilePhoto(photoUrl);
+      }
+    } catch (error) {
+      // Silently handle errors
+    }
+  }, [account, instance, photoLoaded]);
+
+  useEffect(() => {
     fetchProfilePhoto();
     
     // Cleanup function to revoke object URLs
@@ -86,7 +87,7 @@ export function UserProfile() {
         URL.revokeObjectURL(profilePhoto);
       }
     };
-  }, [account]);
+  }, [fetchProfilePhoto]);
   
   return (
     <div className="relative" ref={dropdownRef}>
@@ -103,7 +104,7 @@ export function UserProfile() {
             onError={() => setProfilePhoto(null)}
           />
         ) : (
-          initials
+          userData.initials
         )}
       </button>
 
@@ -122,12 +123,12 @@ export function UserProfile() {
                     onError={() => setProfilePhoto(null)}
                   />
                 ) : (
-                  initials
+                  userData.initials
                 )}
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">{displayName}</p>
-                <p className="text-xs text-gray-500">{email}</p>
+                <p className="text-sm font-semibold text-gray-900">{userData.displayName}</p>
+                <p className="text-xs text-gray-500">{userData.email}</p>
               </div>
             </div>
           </div>
@@ -145,7 +146,7 @@ export function UserProfile() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            Sign out
+            {language === "es" ? "Cerrar sesión" : "Sign out"}
           </button>
         </div>
       )}

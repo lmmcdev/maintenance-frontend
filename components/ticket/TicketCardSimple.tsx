@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { TicketStatus, Ticket } from "../types/ticket";
+import { TicketStatus, Ticket, TicketSource } from "../types/ticket";
 import { StatusBadge } from "./StatusBadge";
 import { CancelDialog } from "./dialogs/CancelDialog";
 import { patchStatus, cancelTicket } from "../api/ticketApi";
@@ -12,6 +12,114 @@ function truncate(txt: string, max = 120) {
   return txt && txt.length > max ? txt.slice(0, max - 1) + "…" : txt;
 }
 
+function fmtDate(iso?: string | null) {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleString();
+  } catch {
+    return String(iso);
+  }
+}
+
+function getSourceDisplay(source?: TicketSource | null, currentLanguage?: string) {
+  const texts = {
+    en: {
+      EMAIL: "Email",
+      RINGCENTRAL: "Call", 
+      MANUAL: "Manual",
+      UNKNOWN: "Unknown"
+    },
+    es: {
+      EMAIL: "Email",
+      RINGCENTRAL: "Llamada",
+      MANUAL: "Manual", 
+      UNKNOWN: "Desconocido"
+    }
+  };
+
+  const lang = currentLanguage === "es" ? "es" : "en";
+
+  switch (source) {
+    case "EMAIL":
+      return { text: texts[lang].EMAIL, icon: "M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z", color: "text-blue-600" };
+    case "RINGCENTRAL":
+      return { text: texts[lang].RINGCENTRAL, icon: "M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z", color: "text-green-600" };
+    case "MANUAL":
+      return { text: texts[lang].MANUAL, icon: "M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z", color: "text-gray-600" };
+    default:
+      return { text: texts[lang].UNKNOWN, icon: "M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z", color: "text-gray-500" };
+  }
+}
+
+function getLocationDisplay(location?: { category: string; subLocation?: string } | null, currentLanguage?: string) {
+  if (!location) return null;
+
+  const locationLabels = {
+    "ADULT DAY CARE": currentLanguage === "es" ? "Centro de Día" : "Adult Day Care",
+    "MEDICAL CENTER": currentLanguage === "es" ? "Centro Médico" : "Medical Center", 
+    "Pharmacy": "Pharmacy",
+    "OTC": "OTC",
+    "Research": "Research",
+    "Corporate": "Corporate"
+  };
+
+  const subLocationLabels = {
+    // Adult Day Care locations
+    ADC_HIALEAH_WEST: "ADC Hialeah West",
+    ADC_HIALEAH_EAST: "ADC Hialeah East",
+    ADC_BIRD_ROAD: "ADC Bird Road",
+    ADC_CUTLER_BAY: "ADC Cutler Bay",
+    ADC_HIALEAH: "ADC Hialeah",
+    ADC_HIATUS: "ADC Hiatus",
+    ADC_HOLLYWOOD: "ADC Hollywood",
+    ADC_HOMESTEAD: "ADC Homestead",
+    ADC_KENDALL: "ADC Kendall",
+    ADC_MARLINS_PARK: "ADC Marlins Park",
+    ADC_MIAMI_27TH: "ADC Miami 27th",
+    ADC_MIAMI_37TH: "ADC Miami 37th",
+    ADC_MIAMI_GARDENS: "ADC Miami Gardens",
+    ADC_MIAMI_LAKES: "ADC Miami Lakes",
+    ADC_NORTH_MIAMI: "ADC North Miami",
+    ADC_NORTH_MIAMI_BEACH: "ADC North Miami Beach",
+    ADC_PEMBROKE_PINES: "ADC Pembroke Pines",
+    ADC_PLANTATION: "ADC Plantation",
+    ADC_TAMARAC: "ADC Tamarac",
+    ADC_WEST_PALM_BEACH: "ADC West Palm Beach",
+    ADC_WESTCHESTER: "ADC Westchester",
+    
+    // Medical Center locations
+    HIALEAH_MC: "Hialeah MC",
+    HIALEAH_WEST_MC: "Hialeah West MC",
+    HIALEAH_EAST_MC: "Hialeah East MC",
+    BIRD_ROAD_MC: "Bird Road MC",
+    HIATUS_MC: "Hiatus MC",
+    PEMBROKE_PINES_MC: "Pembroke Pines MC",
+    PLANTATION_MC: "Plantation MC",
+    WEST_PALM_BEACH_MC: "West Palm Beach MC",
+    HOLLYWOOD_MC: "Hollywood MC",
+    KENDALL_MC: "Kendall MC",
+    HOMESTEAD_MC: "Homestead MC",
+    CUTLER_RIDGE_MC: "Cutler Ridge MC",
+    TAMARAC_MC: "Tamarac MC",
+    WESTCHESTER_MC: "Westchester MC",
+    NORTH_MIAMI_BEACH_MC: "North Miami Beach MC",
+    MIAMI_GARDENS_MC: "Miami Gardens MC",
+    MARLINS_PARK_MC: "Marlins Park MC",
+    MIAMI_27TH_MC: "Miami 27th MC",
+    HIALEAH_GARDENS_SPECIALIST: "Hialeah Gardens Specialist",
+    BIRD_ROAD_SPECIALIST: "Bird Road Specialist"
+  };
+
+  const categoryText = locationLabels[location.category as keyof typeof locationLabels] || location.category;
+  const subLocationText = location.subLocation ? subLocationLabels[location.subLocation as keyof typeof subLocationLabels] || location.subLocation : null;
+
+  return {
+    text: subLocationText ? `${categoryText} - ${subLocationText}` : categoryText,
+    icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z",
+    color: "text-purple-600"
+  };
+}
+
 type TicketCardProps = {
   t: Ticket;
   apiBase: string;
@@ -19,7 +127,7 @@ type TicketCardProps = {
 };
 
 export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
-  const { t: translate } = useLanguage();
+  const { t: translate, language } = useLanguage();
   const router = useRouter();
   const [busy, setBusy] = useState<"done" | "open" | "cancel" | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -87,7 +195,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
               </h3>
             </div>
             {t.phoneNumber && (
-              <div className="text-xs sm:text-sm text-gray-500 font-medium flex items-center gap-1">
+              <div className="text-xs sm:text-sm text-gray-500 font-medium flex items-center gap-1 mb-1">
                 <svg
                   className="w-3 h-3"
                   fill="none"
@@ -236,6 +344,46 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
             )}
           </>
         )}
+      </div>
+
+      {/* Creation Date, Location & Source */}
+      <div className="space-y-2 mt-3 pt-2 border-t border-gray-100">
+        {/* Top row: Created date and Source */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-xs sm:text-sm text-gray-500 font-medium flex items-center gap-1">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {translate("created")} {t.createdAt ? fmtDate(t.createdAt) : 'N/A'}
+          </div>
+          {/* Source */}
+          {(() => {
+            const sourceInfo = getSourceDisplay(t.source, language);
+            return (
+              <div className={`text-xs sm:text-sm font-medium flex items-center gap-1 ${sourceInfo.color}`}>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sourceInfo.icon} />
+                </svg>
+                {sourceInfo.text}
+              </div>
+            );
+          })()}
+        </div>
+        
+        {/* Bottom row: Location (if exists) */}
+        {(() => {
+          const locationInfo = getLocationDisplay(t.location, language);
+          if (!locationInfo) return null;
+          
+          return (
+            <div className={`text-xs sm:text-sm font-medium flex items-center gap-1 ${locationInfo.color}`}>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={locationInfo.icon} />
+              </svg>
+              {locationInfo.text}
+            </div>
+          );
+        })()}
       </div>
 
       
