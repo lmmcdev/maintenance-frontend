@@ -130,6 +130,8 @@ class AzureNotificationHubService {
 
       const response = await fetch(this.backendUrl, {
         method: 'POST',
+        mode: 'cors',
+        credentials: 'omit',
         headers,
         body: JSON.stringify(registrationData)
       });
