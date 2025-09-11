@@ -1,5 +1,6 @@
 // Service Worker for Push Notifications
 self.addEventListener('push', function(event) {
+  console.log('Push event received:', event);
   if (!(self.Notification && self.Notification.permission === 'granted')) {
     return;
   }
