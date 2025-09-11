@@ -3,7 +3,7 @@
 
 export const NOTIFICATION_CONFIG = {
   // Azure Notification Hub settings
-  BACKEND_URL: process.env.NEXT_PUBLIC_AZURE_NH_BACKEND_URL || 'https://cservicesapi.azurewebsites.net/api/registerDevice',
+  BACKEND_URL: process.env.NEXT_PUBLIC_NOTIFICATIONHUBS_URI|| 'https://cservicesapi.azurewebsites.net/api/registerDevice',
   VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_KEY || 'BPSp8t7UKlJGnDei4H9RV79DfvTkm2isH4gB0GANYuj1t3yqXfbbjftCl2dH8UWnl67DfJclNcpo7Ul6sorFLek',
   
   // Default tags for device registration
