@@ -4,6 +4,7 @@ import { Nav } from "./(ui)/nav";
 import { AuthProvider } from "../lib/auth/AuthProvider";
 import { LanguageProvider } from "../components/context/LanguageContext";
 import { ProtectedRoute } from "../components/auth/ProtectedRoute";
+import { NotificationProvider } from "../components/notifications/NotificationProvider";
 
 export const metadata: Metadata = { 
   title: "Maintenance",
@@ -21,7 +22,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <LanguageProvider>
             <ProtectedRoute>
-              {children}
+              <NotificationProvider>
+                {children}
+              </NotificationProvider>
             </ProtectedRoute>
           </LanguageProvider>
         </AuthProvider>
