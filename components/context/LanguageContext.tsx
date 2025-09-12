@@ -33,7 +33,7 @@ const translations: Translations = {
     priority: "Priority:",
 
     // Assignment
-    assign: "Assign:",
+    assign: "Assign",
     "assign.to": "Select assignee(s)...",
     "reassign.to": "Reassign to...",
     "people.selected": "people selected",
@@ -179,7 +179,7 @@ const translations: Translations = {
     priority: "Prioridad:",
 
     // Assignment
-    assign: "Asignar:",
+    assign: "Asignar",
     "assign.to": "Seleccionar asignado(s)...",
     "reassign.to": "Reasignar a...",
     "people.selected": "personas seleccionadas",
