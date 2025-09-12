@@ -1,4 +1,4 @@
-import { searchPersons, type Person } from "@/lib/api/client";
+import { searchPersons, searchPersonsByDepartment, type Person } from "@/lib/api/client";
 import React, { useEffect, useState } from "react";
 
 function AssignSelect({
@@ -6,11 +6,13 @@ function AssignSelect({
   disabled,
   onAssign,
   limit = 10,
+  department,
 }: {
   apiBase: string;
   disabled?: boolean;
   onAssign: (personId: string) => Promise<void> | void;
   limit?: number;
+  department?: string;
 }) {
   const [options, setOptions] = useState<Person[]>([]);
   const [loading, setLoading] = useState(false);
@@ -19,7 +21,9 @@ function AssignSelect({
   async function loadDefault() {
     try {
       setLoading(true);
-      const items = await searchPersons({ apiBase }, "", limit);
+      const items = department 
+        ? await searchPersonsByDepartment({ apiBase }, department, limit)
+        : await searchPersons({ apiBase }, "", limit);
       setOptions(items);
     } finally {
       setLoading(false);
@@ -28,7 +32,7 @@ function AssignSelect({
 
   useEffect(() => {
     loadDefault(); // carga inicial
-  }, [apiBase, limit]);
+  }, [apiBase, limit, department]);
 
   async function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const personId = e.target.value;

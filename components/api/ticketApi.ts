@@ -208,6 +208,18 @@ export async function searchPersons(
   return json?.data?.items ?? [];
 }
 
+export async function searchPersonsByDepartment(
+  apiBase: string,
+  department: string,
+  limit: number = 50
+): Promise<Person[]> {
+  const url = `${apiBase}/api/v1/persons?department=${encodeURIComponent(department)}&limit=${limit}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Department search failed: HTTP ${res.status}`);
+  const json = await res.json();
+  return json?.data?.items ?? [];
+}
+
 export async function getTicketNotes(apiBase: string, ticketId: string) {
   const res = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`);
   if (!res.ok) throw new Error(`Get notes failed: HTTP ${res.status}`);

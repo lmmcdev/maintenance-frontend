@@ -119,6 +119,17 @@ export async function searchPersons(
   return json?.data?.items ?? [];
 }
 
+export async function searchPersonsByDepartment(
+  opts: ApiClientOptions,
+  department: string,
+  limit = 50
+): Promise<Person[]> {
+  const qs = new URLSearchParams({ department, limit: String(limit) });
+  const url = withBase(opts.apiBase, `/api/v1/persons?${qs.toString()}`);
+  const json = await fetchJson<{ data?: { items?: Person[] } }>(url);
+  return json?.data?.items ?? [];
+}
+
 /* ---------- Categorías ---------- */
 
 export type UICategory = {
