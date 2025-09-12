@@ -1,8 +1,8 @@
 // lib/hooks/usePersons.ts
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { searchPersons, type Person } from "@/lib/api/client";
+import { useEffect, useState } from "react";
+import { searchPersons, searchPersonsByDepartment, type Person } from "@/lib/api/client";
 
 export function usePersonSearch(apiBase: string, q: string, debounceMs = 300) {
   const [items, setItems] = useState<Person[]>([]);
@@ -26,6 +26,25 @@ export function usePersonSearch(apiBase: string, q: string, debounceMs = 300) {
     }, debounceMs);
     return () => clearTimeout(id);
   }, [apiBase, qNorm, debounceMs]);
+
+  return { items, loading };
+}
+
+export function usePersonsByDepartment(apiBase: string, department: string, limit = 50) {
+  const [items, setItems] = useState<Person[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!department) {
+      setItems([]);
+      return;
+    }
+    
+    setLoading(true);
+    searchPersonsByDepartment({ apiBase }, department, limit)
+      .then(setItems)
+      .finally(() => setLoading(false));
+  }, [apiBase, department, limit]);
 
   return { items, loading };
 }

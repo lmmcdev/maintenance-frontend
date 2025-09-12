@@ -1,8 +1,14 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { Person } from "../types/ticket";
-import { searchPersons } from "../api/ticketApi";
+import { searchPersons, searchPersonsByDepartment } from "../api/ticketApi";
 
 function normalizeCats(arr: any[]): UICategory[] {
   const active = (arr || []).filter((c: any) => c?.isActive !== false);
@@ -38,12 +44,14 @@ type StaticDataContextType = {
   refreshData: () => Promise<void>;
 };
 
-const StaticDataContext = createContext<StaticDataContextType | undefined>(undefined);
+const StaticDataContext = createContext<StaticDataContextType | undefined>(
+  undefined
+);
 
-export function StaticDataProvider({ 
-  children, 
-  apiBase = "/_api" 
-}: { 
+export function StaticDataProvider({
+  children,
+  apiBase = "/_api",
+}: {
   children: ReactNode;
   apiBase?: string;
 }) {
@@ -60,45 +68,32 @@ export function StaticDataProvider({
 
       // Fetch persons and categories in parallel
       const [personsData, categoriesResponse] = await Promise.all([
-        searchPersons(apiBase, "").catch(() => []),
+        searchPersonsByDepartment(apiBase, "MAINTENANCE").catch(() => []),
         fetch(`${apiBase}/api/v1/categories?limit=200`)
-          .then(res => res.ok ? res.json() : [])
-          .catch(() => [])
+          .then((res) => (res.ok ? res.json() : []))
+          .catch(() => []),
       ]);
 
       setPersons(personsData);
-      
+
       // Process categories
-      const items = categoriesResponse?.data?.items || categoriesResponse?.items || [];
+      const items =
+        categoriesResponse?.data?.items || categoriesResponse?.items || [];
       const normalizedCategories = normalizeCats(items);
       setCategories(normalizedCategories);
 
       // Generate people list from persons or use fallback
       if (personsData.length > 0) {
         const list = personsData
-          .map(p => `${p.firstName} ${p.lastName}`.trim())
-          .filter(name => name.length > 0)
+          .map((p) => `${p.firstName} ${p.lastName}`.trim())
+          .filter((name) => name.length > 0)
           .sort((a, b) => a.localeCompare(b));
         setPeopleList(list);
-      } else {
-        // Fallback to hardcoded list if API fails
-        const fallbackList = [
-          "Juan Carlos Gonzalez",
-          "Eugenio Suarez",
-          "Elpidio Davila",
-          "Roger Membreno",
-          "Lino Munoz",
-          "Ariel Caballero",
-          "Ramon Aguilera",
-          "Raul Garcia",
-          "Carlos Pena",
-        ].sort((a, b) => a.localeCompare(b));
-        setPeopleList(fallbackList);
       }
     } catch (err) {
       console.error("Error fetching static data:", err);
       setError("Failed to load static data");
-      
+
       // Set fallback data even on error
       const fallbackList = [
         "Juan Carlos Gonzalez",
@@ -126,14 +121,14 @@ export function StaticDataProvider({
   };
 
   return (
-    <StaticDataContext.Provider 
-      value={{ 
-        persons, 
-        categories, 
-        peopleList, 
-        loading, 
+    <StaticDataContext.Provider
+      value={{
+        persons,
+        categories,
+        peopleList,
+        loading,
         error,
-        refreshData 
+        refreshData,
       }}
     >
       {children}
