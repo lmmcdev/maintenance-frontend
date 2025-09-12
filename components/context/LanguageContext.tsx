@@ -51,6 +51,7 @@ const translations: Translations = {
     // Category
     category: "Category:",
     "category.select": "Select category...",
+    "category.other": "Other",
 
     // Dialogs
     "cancel.ticket": "Cancel Ticket",
@@ -197,6 +198,7 @@ const translations: Translations = {
     // Category
     category: "Categoría:",
     "category.select": "Seleccionar categoría...",
+    "category.other": "Otro",
 
     // Dialogs
     // "cancel.ticket": "Cancelar Ticket",

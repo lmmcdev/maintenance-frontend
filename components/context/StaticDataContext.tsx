@@ -80,7 +80,20 @@ export function StaticDataProvider({
       const items =
         categoriesResponse?.data?.items || categoriesResponse?.items || [];
       const normalizedCategories = normalizeCats(items);
-      setCategories(normalizedCategories);
+      
+      // Add "Other" category as fallback option
+      const categoriesWithOther = [
+        ...normalizedCategories,
+        {
+          name: "OTRO",
+          displayName: "Otro",
+          subcats: [
+            { name: "OTRO", displayName: "Otro" }
+          ]
+        }
+      ];
+      
+      setCategories(categoriesWithOther);
 
       // Generate people list from persons or use fallback
       if (personsData.length > 0) {
