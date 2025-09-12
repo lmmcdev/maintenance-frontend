@@ -11,7 +11,7 @@ import { LocationSelector } from "@/components/ticket/LocationSelector";
 import { CancelDialog } from "@/components/ticket/dialogs/CancelDialog";
 import { AssignmentDialog } from "@/components/ticket/dialogs/AssignmentDialog";
 import { NotesDialog } from "@/components/ticket/dialogs/NotesDialog";
-import { ImageGalleryDialog } from "@/components/ticket/dialogs/ImageGalleryDialog";
+import { AttachmentsDialog } from "@/components/ticket/dialogs/AttachmentsDialog";
 import CustomAudioPlayer from "@/components/CustomAudioPlayer";
 import { patchTicket, patchTicketAssignees, patchStatus, cancelTicket, searchPersons } from "@/components/api/ticketApi";
 import { useStaticData } from "@/components/context/StaticDataContext";
@@ -32,8 +32,7 @@ function TicketDetailPageContent() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelNote, setCancelNote] = useState("");
   const [showNotesDialog, setShowNotesDialog] = useState(false);
-  const [showImageGallery, setShowImageGallery] = useState(false);
-  const [ticketImages, setTicketImages] = useState<any[]>([]);
+  const [showAttachments, setShowAttachments] = useState(false);
 
   const ticketId = params.id as string;
   const apiBase = process.env.NEXT_PUBLIC_API_BASE;
@@ -400,15 +399,20 @@ function TicketDetailPageContent() {
                   <span className="leading-none">{translate("button.notes")}</span>
                 </button>
 
-                {/* Images Button - Always visible */}
+                {/* Attachments Button - Always visible */}
                 <button
-                  onClick={() => setShowImageGallery(true)}
+                  onClick={() => setShowAttachments(true)}
                   className="px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 active:bg-gray-100 transition-all duration-200 text-xs sm:text-sm font-medium shadow-sm hover:shadow-md active:shadow-sm flex items-center justify-center gap-1.5 flex-shrink-0 min-h-[36px]"
                 >
                   <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                   </svg>
-                  <span className="leading-none">{language === "es" ? "Imágenes" : "Images"}</span>
+                  <span className="leading-none">{language === "es" ? "Archivos" : "Files"}</span>
+                  {ticket?.attachments && ticket.attachments.length > 0 && (
+                    <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full ml-1">
+                      {ticket.attachments.length}
+                    </span>
+                  )}
                 </button>
 
                 {/* Status-based Action Buttons */}
@@ -640,11 +644,12 @@ function TicketDetailPageContent() {
           onClose={() => setShowNotesDialog(false)}
         />
 
-        <ImageGalleryDialog
-          show={showImageGallery}
+        <AttachmentsDialog
+          show={showAttachments}
           ticketId={ticket.id}
           apiBase={apiBase!}
-          onClose={() => setShowImageGallery(false)}
+          onClose={() => setShowAttachments(false)}
+          existingAttachments={ticket?.attachments || []}
         />
       </div>
     </div>

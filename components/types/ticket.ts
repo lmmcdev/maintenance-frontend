@@ -33,6 +33,8 @@ export type Attachment = {
   size?: number;
   url?: string;
   uploadedAt?: string;
+  uploadedBy?: string;
+  uploadedByName?: string;
 };
 
 export type Ticket = {
@@ -53,6 +55,7 @@ export type Ticket = {
   audio?: Attachment[] | Attachment | null;
   source?: TicketSource | null;
   location?: TicketLocation | null;
+  attachments?: Attachment[] | null; // Email attachments (documents, images, etc.)
   // Legacy support
   audioUrl?: string | null;
 };
