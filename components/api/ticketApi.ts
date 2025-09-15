@@ -14,11 +14,17 @@ export async function patchTicket(
     priority: Ticket["priority"];
     category: string;
     subcategory: { name: string; displayName: string } | string | null;
-  }>
+  }>,
+  token?: string
 ) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${apiBase}/api/v1/tickets/${id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(body),
   });
 
@@ -91,7 +97,8 @@ export async function patchTicket(
 export async function patchTicketAssignees(
   apiBase: string,
   id: string,
-  assigneeIds: string[]
+  assigneeIds: string[],
+  token?: string
 ) {
   const url = `${apiBase}/api/v1/tickets/${id}`;
 
@@ -101,11 +108,16 @@ export async function patchTicketAssignees(
     assigneeIds,
   });
 
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(url, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify({
       assigneeIds: assigneeIds,
     }),
@@ -162,11 +174,17 @@ export async function patchTicketAssignees(
 export async function patchStatus(
   apiBase: string,
   id: string,
-  status: "OPEN" | "DONE" | "CANCELLED"
+  status: "OPEN" | "DONE" | "CANCELLED",
+  token?: string
 ) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${apiBase}/api/v1/tickets/${id}/status`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ status }),
   });
   if (!res.ok) throw new Error(`Status change failed: HTTP ${res.status}`);
@@ -176,7 +194,8 @@ export async function patchStatus(
 export async function cancelTicket(
   apiBase: string,
   id: string,
-  params?: CancelTicketParams
+  params?: CancelTicketParams,
+  token?: string
 ) {
   const body = params ? {
     reason: params.reason,
@@ -184,25 +203,36 @@ export async function cancelTicket(
     cancelledByName: params.cancelledByName
   } : {};
 
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${apiBase}/api/v1/tickets/${id}/cancel`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(body),
   });
   
   if (!res.ok) {
     // fallback: si tu backend no tiene cancel, lo marcamos CANCELLED como placeholder
-    await patchStatus(apiBase, id, "CANCELLED");
+    await patchStatus(apiBase, id, "CANCELLED", token);
   }
   return res.ok ? res.json() : true;
 }
 
 export async function searchPersons(
   apiBase: string,
-  q: string
+  q: string,
+  token?: string
 ): Promise<Person[]> {
   const url = `${apiBase}/api/v1/persons?q=${encodeURIComponent(q)}&limit=50`;
-  const res = await fetch(url);
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, { headers });
   if (!res.ok) throw new Error(`People search failed: HTTP ${res.status}`);
   const json = await res.json();
   return json?.data?.items ?? [];
@@ -211,17 +241,28 @@ export async function searchPersons(
 export async function searchPersonsByDepartment(
   apiBase: string,
   department: string,
-  limit: number = 50
+  limit: number = 50,
+  token?: string
 ): Promise<Person[]> {
   const url = `${apiBase}/api/v1/persons?department=${encodeURIComponent(department)}&limit=${limit}`;
-  const res = await fetch(url);
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, { headers });
   if (!res.ok) throw new Error(`Department search failed: HTTP ${res.status}`);
   const json = await res.json();
   return json?.data?.items ?? [];
 }
 
-export async function getTicketNotes(apiBase: string, ticketId: string) {
-  const res = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`);
+export async function getTicketNotes(apiBase: string, ticketId: string, token?: string) {
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`, { headers });
   if (!res.ok) throw new Error(`Get notes failed: HTTP ${res.status}`);
   return res.json();
 }
@@ -234,13 +275,62 @@ export async function addTicketNote(
     type?: string;
     createdBy?: string;
     createdByName?: string;
-  }
+  },
+  token?: string
 ) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(note),
   });
   if (!res.ok) throw new Error(`Add note failed: HTTP ${res.status}`);
   return res.json();
+}
+
+interface Location {
+  id: string;
+  name: string;
+  code?: string;
+  [key: string]: any;
+}
+
+interface LocationsResponse {
+  data?: {
+    items?: Location[];
+  };
+  items?: Location[];
+  locations?: Location[];
+}
+
+export async function fetchLocations(
+  locationTypeId: string = "4ff2be35-9501-43e2-9a2e-c9d6480e2b41",
+  page: number = 1,
+  pageSize: number = 20,
+  searchQuery: string = "",
+  token?: string
+): Promise<Location[]> {
+  const url = `https://compliance-api-fybjasdddtcxhqfw.eastus2-01.azurewebsites.net/api/v1/location-types/${locationTypeId}/locations?page=${page}&pageSize=${pageSize}&q=${encodeURIComponent(searchQuery)}`;
+
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Fetch locations failed: HTTP ${res.status}`);
+  }
+
+  const json: LocationsResponse = await res.json();
+
+  return json?.data?.items || json?.items || json?.locations || [];
 }

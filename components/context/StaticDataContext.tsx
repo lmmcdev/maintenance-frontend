@@ -51,9 +51,11 @@ const StaticDataContext = createContext<StaticDataContextType | undefined>(
 export function StaticDataProvider({
   children,
   apiBase = "/_api",
+  token,
 }: {
   children: ReactNode;
   apiBase?: string;
+  token?: string;
 }) {
   const [persons, setPersons] = useState<Person[]>([]);
   const [categories, setCategories] = useState<UICategory[]>([]);
@@ -68,10 +70,16 @@ export function StaticDataProvider({
 
       // Fetch persons and categories in parallel
       const [personsData, categoriesResponse] = await Promise.all([
-        searchPersonsByDepartment(apiBase, "MAINTENANCE").catch(() => []),
-        fetch(`${apiBase}/api/v1/categories?limit=200`)
-          .then((res) => (res.ok ? res.json() : []))
-          .catch(() => []),
+        searchPersonsByDepartment(apiBase, "MAINTENANCE", 50, token).catch(() => []),
+        (() => {
+          const headers: Record<string, string> = {};
+          if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+          }
+          return fetch(`${apiBase}/api/v1/categories?limit=200`, { headers })
+            .then((res) => (res.ok ? res.json() : []))
+            .catch(() => []);
+        })()
       ]);
 
       setPersons(personsData);
@@ -127,7 +135,7 @@ export function StaticDataProvider({
 
   useEffect(() => {
     fetchStaticData();
-  }, [apiBase]);
+  }, [apiBase, token]);
 
   const refreshData = async () => {
     await fetchStaticData();

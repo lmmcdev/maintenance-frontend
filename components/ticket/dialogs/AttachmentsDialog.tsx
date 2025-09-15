@@ -11,6 +11,7 @@ type AttachmentsDialogProps = {
   apiBase: string;
   onClose: () => void;
   existingAttachments?: Attachment[]; // Email attachments from ticket data
+  token?: string;
 };
 
 export function AttachmentsDialog({
@@ -18,7 +19,8 @@ export function AttachmentsDialog({
   ticketId,
   apiBase,
   onClose,
-  existingAttachments = []
+  existingAttachments = [],
+  token
 }: AttachmentsDialogProps) {
   const { t, language } = useLanguage();
   const [uploadedAttachments, setUploadedAttachments] = useState<Attachment[]>([]);
@@ -41,7 +43,11 @@ export function AttachmentsDialog({
   const loadUploadedAttachments = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/attachments`);
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/attachments`, { headers });
       if (response.ok) {
         const result = await response.json();
         setUploadedAttachments(result.data?.attachments || []);
@@ -135,8 +141,13 @@ export function AttachmentsDialog({
         formData.append(`attachments`, file);
       });
 
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
       const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/attachments`, {
         method: 'POST',
+        headers,
         body: formData,
       });
 

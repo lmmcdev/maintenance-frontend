@@ -9,10 +9,10 @@ import { CategoryChart } from "./CategoryChart";
 import { AssigneeChart } from "./AssigneeChart";
 import { StaticDataProvider } from "../context/StaticDataContext";
 
-export function TicketsDashboard({ apiBase = "/_api" }: { apiBase?: string }) {
-  const { items: newItems, loading: l1 } = useTickets(apiBase, "NEW");
-  const { items: progItems, loading: l2 } = useTickets(apiBase, "OPEN");
-  const { items: doneItems, loading: l3 } = useTickets(apiBase, "DONE");
+export function TicketsDashboard({ apiBase = "/_api", token }: { apiBase?: string; token?: string }) {
+  const { items: newItems, loading: l1 } = useTickets(apiBase, "NEW", token);
+  const { items: progItems, loading: l2 } = useTickets(apiBase, "OPEN", token);
+  const { items: doneItems, loading: l3 } = useTickets(apiBase, "DONE", token);
   const loading = l1 || l2 || l3;
 
   const counts = useMemo(
@@ -28,7 +28,7 @@ export function TicketsDashboard({ apiBase = "/_api" }: { apiBase?: string }) {
   }, [newItems, progItems, doneItems]);
 
   return (
-    <StaticDataProvider apiBase={apiBase}>
+    <StaticDataProvider apiBase={apiBase} token={token}>
       <div className="min-h-dvh bg-gradient-to-br from-gray-50 to-gray-100 relative">
         <StickyDashboardHeader />
         {loading ? (

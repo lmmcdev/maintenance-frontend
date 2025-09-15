@@ -19,7 +19,7 @@ function normalizeCats(arr: any[]): UICategory[] {
   });
 }
 
-export function useCategories(apiBase: string) {
+export function useCategories(apiBase: string, token?: string) {
   const [cats, setCats] = useState<UICategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +30,11 @@ export function useCategories(apiBase: string) {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${apiBase}/api/v1/categories?limit=200`);
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+        const res = await fetch(`${apiBase}/api/v1/categories?limit=200`, { headers });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         const items = json?.data?.items ?? json?.items ?? [];
@@ -45,7 +49,7 @@ export function useCategories(apiBase: string) {
     return () => {
       abort = true;
     };
-  }, [apiBase]);
+  }, [apiBase, token]);
   
   return { cats, loading, error };
 }
