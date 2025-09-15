@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Ticket, TicketStatus, ListResponse } from "../types/ticket";
 
-export function useTickets(apiBase: string, status: TicketStatus) {
+export function useTickets(apiBase: string, status: TicketStatus, token?: string) {
   const [items, setItems] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +16,11 @@ export function useTickets(apiBase: string, status: TicketStatus) {
         const url = `${apiBase}/api/v1/tickets?status=${encodeURIComponent(
           status
         )}&limit=20&sortBy=createdAt&sortDir=desc`;
-        const res = await fetch(url);
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+        const res = await fetch(url, { headers });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json: ListResponse = await res.json();
         if (!json.success) throw new Error("API returned success=false");
@@ -27,7 +31,7 @@ export function useTickets(apiBase: string, status: TicketStatus) {
         setLoading(false);
       }
     };
-  }, [apiBase, status]);
+  }, [apiBase, status, token]);
 
   useEffect(() => {
     reload();

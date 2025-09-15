@@ -19,13 +19,15 @@ type ImageGalleryDialogProps = {
   ticketId: string;
   apiBase: string;
   onClose: () => void;
+  token?: string;
 };
 
 export function ImageGalleryDialog({
   show,
   ticketId,
   apiBase,
-  onClose
+  onClose,
+  token
 }: ImageGalleryDialogProps) {
   const { t, language } = useLanguage();
   const [images, setImages] = useState<ImageAttachment[]>([]);
@@ -44,7 +46,11 @@ export function ImageGalleryDialog({
   const loadImages = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/attachments`);
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/attachments`, { headers });
       if (response.ok) {
         const result = await response.json();
         const imageAttachments = (result.data?.attachments || []).filter(
@@ -99,8 +105,13 @@ export function ImageGalleryDialog({
 
     try {
       setUploading(true);
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
       const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/attachments`, {
         method: "POST",
+        headers,
         body: formData,
       });
 

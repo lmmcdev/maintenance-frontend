@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { LocationCategory, SubLocation } from "../types/ticket";
 import { useLanguage } from "../context/LanguageContext";
+import { fetchLocations } from "../api/ticketApi";
 
 type LocationSelectorProps = {
   value: { category: LocationCategory; subLocation?: SubLocation } | null | undefined;
@@ -107,18 +108,44 @@ const SUB_LOCATION_LABELS = {
   
 };
 
-export function LocationSelector({ 
-  value, 
-  onChange, 
+export function LocationSelector({
+  value,
+  onChange,
   disabled = false,
-  onOpenChange 
+  onOpenChange
 }: LocationSelectorProps) {
   const { t: translate, language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLabel, setSelectedLabel] = useState<string>("");
   const [dropdownPosition, setDropdownPosition] = useState<"down" | "up">("down");
+  const [apiLocations, setApiLocations] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Fetch locations from API with debounce
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const loadLocations = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+          const locations = await fetchLocations(undefined, 1, 100, searchTerm);
+          setApiLocations(locations);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Failed to load locations");
+          console.error("Failed to fetch locations:", err);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      loadLocations();
+    }, 300); // Debounce search by 300ms
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
 
   const getLabel = (key: string, labelConfig: any) => {
     if (!labelConfig[key]) return key;
@@ -147,6 +174,34 @@ export function LocationSelector({
       isSeparator?: boolean;
       sectionTitle?: string;
     }> = [];
+
+    // Add API locations first if available
+    if (apiLocations.length > 0) {
+      options.push({
+        value: "title_API_LOCATIONS",
+        label: "External Locations",
+        category: "API_LOCATIONS" as LocationCategory,
+        isSeparator: true,
+        sectionTitle: "External Locations"
+      });
+
+      apiLocations.forEach((location) => {
+        options.push({
+          value: `API_LOCATION|${location.id}`,
+          label: location.name || location.code || location.id,
+          category: "API_LOCATIONS" as LocationCategory,
+          subLocation: location.id as SubLocation
+        });
+      });
+
+      // Add separator between API locations and static locations
+      options.push({
+        value: "separator_STATIC",
+        label: "",
+        category: "STATIC" as LocationCategory,
+        isSeparator: true
+      });
+    }
 
     const sectionOrder = ['ADULT DAY CARE', 'MEDICAL CENTER', 'OTHERS'];
 
@@ -351,7 +406,25 @@ export function LocationSelector({
 
             {/* Locations list */}
             <div className="max-h-40 overflow-y-auto">
-              {filteredOptions.map((option) => {
+              {isLoading && (
+                <div className="px-2 sm:px-3 py-4 text-xs sm:text-sm text-gray-500 text-center">
+                  <div className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Loading locations...
+                  </div>
+                </div>
+              )}
+
+              {error && (
+                <div className="px-2 sm:px-3 py-4 text-xs sm:text-sm text-red-500 text-center">
+                  {error}
+                </div>
+              )}
+
+              {!isLoading && !error && filteredOptions.map((option) => {
                 // Section separator
                 if (option.isSeparator && !option.sectionTitle) {
                   return (
@@ -407,7 +480,7 @@ export function LocationSelector({
                 );
               })}
 
-              {filteredOptions.length === 0 && (
+              {!isLoading && !error && filteredOptions.length === 0 && (
                 <div className="px-2 sm:px-3 py-4 text-xs sm:text-sm text-gray-500 text-center">
                   No locations found
                 </div>

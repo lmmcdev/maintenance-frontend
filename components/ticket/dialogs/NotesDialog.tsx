@@ -24,13 +24,15 @@ type NotesDialogProps = {
   ticketId: string;
   apiBase: string;
   onClose: () => void;
+  token?: string;
 };
 
 export function NotesDialog({
   show,
   ticketId,
   apiBase,
-  onClose
+  onClose,
+  token
 }: NotesDialogProps) {
   const { t } = useLanguage();
   const [notes, setNotes] = useState<TicketNote[]>([]);
@@ -50,7 +52,11 @@ export function NotesDialog({
   const loadNotes = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`);
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`, { headers });
       if (response.ok) {
         const result = await response.json();
         setNotes(result.data?.notes || []);
@@ -102,8 +108,13 @@ export function NotesDialog({
 
     try {
       setUploading(true);
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
       const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/attachments`, {
         method: "POST",
+        headers,
         body: formData,
       });
 
@@ -132,9 +143,13 @@ export function NotesDialog({
         attachmentIds = await uploadImages();
       }
 
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
       const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           content: newNote.trim() || "Image attachment",
           type: "general",

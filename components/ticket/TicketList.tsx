@@ -9,10 +9,11 @@ import { useLanguage } from "../context/LanguageContext";
 type TicketListProps = {
   apiBase: string;
   status: TicketStatus;
+  token?: string;
 };
 
-export function TicketList({ apiBase, status }: TicketListProps) {
-  const { items, loading, error, reload } = useTickets(apiBase, status);
+export function TicketList({ apiBase, status, token }: TicketListProps) {
+  const { items, loading, error, reload } = useTickets(apiBase, status, token);
   const { t } = useLanguage();
 
   if (loading) return (

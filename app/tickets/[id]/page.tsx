@@ -18,6 +18,7 @@ import { useStaticData } from "@/components/context/StaticDataContext";
 import { useLanguage } from "@/components/context/LanguageContext";
 import { StaticDataProvider } from "@/components/context/StaticDataContext";
 import { Nav } from "@/app/(ui)/nav";
+import { useApiTokens } from "@/lib/hooks/useApiTokens";
 
 function TicketDetailPageContent() {
   const params = useParams();
@@ -33,11 +34,13 @@ function TicketDetailPageContent() {
   const [cancelNote, setCancelNote] = useState("");
   const [showNotesDialog, setShowNotesDialog] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
+  const [currentToken, setCurrentToken] = useState<string | null>(null);
 
   const ticketId = params.id as string;
   const apiBase = process.env.NEXT_PUBLIC_API_BASE;
   const { persons, peopleList } = useStaticData();
   const { t: translate, language } = useLanguage();
+  const { getMaintenanceToken, tokens } = useApiTokens();
 
   useEffect(() => {
     if (!ticketId || !apiBase) return;
@@ -45,12 +48,19 @@ function TicketDetailPageContent() {
     const fetchTicket = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}`);
-        
+        const token = await getMaintenanceToken();
+        setCurrentToken(token);
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}`, { headers });
+
         if (!response.ok) {
           throw new Error(`Failed to fetch ticket: ${response.status}`);
         }
-        
+
         const data = await response.json();
         setTicket(data.data || data);
       } catch (err) {
@@ -62,12 +72,18 @@ function TicketDetailPageContent() {
     };
 
     fetchTicket();
-  }, [ticketId, apiBase]);
+  }, [ticketId, apiBase, getMaintenanceToken]);
 
   const reloadTicket = async () => {
     if (!ticketId || !apiBase) return;
     try {
-      const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}`);
+      const token = await getMaintenanceToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}`, { headers });
       if (response.ok) {
         const data = await response.json();
         setTicket(data.data || data);
@@ -81,20 +97,21 @@ function TicketDetailPageContent() {
     if (!ticket) return;
     try {
       setBusy("assign");
-      
+
       if (!ticket.category || !ticket.priority) {
         alert("Complete category and priority before assigning.");
         return;
       }
-      
+
+      const token = await getMaintenanceToken();
       const assigneeIds: string[] = [];
-      
+
       for (const fullName of fullNames) {
         const match = persons.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase());
         if (match?.id) {
           assigneeIds.push(match.id);
         } else {
-          const res = await searchPersons(apiBase!, fullName);
+          const res = await searchPersons(apiBase!, fullName, token || undefined);
           const searchMatch = res.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase()) || res[0];
           if (searchMatch?.id) {
             assigneeIds.push(searchMatch.id);
@@ -103,14 +120,14 @@ function TicketDetailPageContent() {
           }
         }
       }
-      
+
       if (assigneeIds.length === 0) {
         alert("No valid assignees found in directory.");
         return;
       }
-      
-      await patchTicketAssignees(apiBase!, ticket.id, assigneeIds);
-      await patchStatus(apiBase!, ticket.id, "OPEN");
+
+      await patchTicketAssignees(apiBase!, ticket.id, assigneeIds, token || undefined);
+      await patchStatus(apiBase!, ticket.id, "OPEN", token || undefined);
       await reloadTicket();
     } catch (e) {
       console.error('Assignment error:', e);
@@ -122,14 +139,24 @@ function TicketDetailPageContent() {
 
   async function markDone() {
     if (!ticket) return;
-    try { setBusy("done"); await patchStatus(apiBase!, ticket.id, "DONE"); await reloadTicket(); }
+    try {
+      setBusy("done");
+      const token = await getMaintenanceToken();
+      await patchStatus(apiBase!, ticket.id, "DONE", token || undefined);
+      await reloadTicket();
+    }
     catch (e) { alert((e as any)?.message ?? "Error marking done"); }
     finally { setBusy(null); }
   }
 
   async function reopen() {
     if (!ticket) return;
-    try { setBusy("open"); await patchStatus(apiBase!, ticket.id, "OPEN"); await reloadTicket(); }
+    try {
+      setBusy("open");
+      const token = await getMaintenanceToken();
+      await patchStatus(apiBase!, ticket.id, "OPEN", token || undefined);
+      await reloadTicket();
+    }
     catch (e) { alert((e as any)?.message ?? "Error reopening"); }
     finally { setBusy(null); }
   }
@@ -168,9 +195,10 @@ function TicketDetailPageContent() {
     if (!ticket) return;
     if (cancelNote.trim()) {
       setShowCancelDialog(false);
-      try { 
-        setBusy("cancel"); 
-        await cancelTicket(apiBase!, ticket.id, { reason: cancelNote.trim() }); 
+      try {
+        setBusy("cancel");
+        const token = await getMaintenanceToken();
+        await cancelTicket(apiBase!, ticket.id, { reason: cancelNote.trim() }, token || undefined);
         await reloadTicket();
       }
       catch (e) { alert((e as any)?.message ?? "Error canceling"); }
@@ -573,7 +601,8 @@ function TicketDetailPageContent() {
                 onChange={async (p) => {
                   try {
                     setBusy("priority");
-                    await patchTicket(apiBase!, ticket.id, { priority: p });
+                    const token = await getMaintenanceToken();
+                    await patchTicket(apiBase!, ticket.id, { priority: p }, token || undefined);
                     await reloadTicket();
                   } catch (err: any) {
                     alert(err?.message ?? "Error updating priority");
@@ -642,6 +671,7 @@ function TicketDetailPageContent() {
           ticketId={ticket.id}
           apiBase={apiBase!}
           onClose={() => setShowNotesDialog(false)}
+          token={currentToken || undefined}
         />
 
         <AttachmentsDialog
@@ -650,16 +680,28 @@ function TicketDetailPageContent() {
           apiBase={apiBase!}
           onClose={() => setShowAttachments(false)}
           existingAttachments={ticket?.attachments || []}
+          token={currentToken || undefined}
         />
       </div>
     </div>
   );
 }
 
-export default function TicketDetailPage() {
+function TicketDetailPageWithToken() {
+  const { getMaintenanceToken } = useApiTokens();
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    getMaintenanceToken().then(setToken);
+  }, [getMaintenanceToken]);
+
   return (
-    <StaticDataProvider apiBase={process.env.NEXT_PUBLIC_API_BASE || ""}>
+    <StaticDataProvider apiBase={process.env.NEXT_PUBLIC_API_BASE || ""} token={token || undefined}>
       <TicketDetailPageContent />
     </StaticDataProvider>
   );
+}
+
+export default function TicketDetailPage() {
+  return <TicketDetailPageWithToken />;
 }

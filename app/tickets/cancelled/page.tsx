@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { StaticDataProvider } from "@/components/context/StaticDataContext";
 import { TicketList } from "@/components/ticket/TicketList";
@@ -8,8 +8,9 @@ import { useLanguage } from "@/components/context/LanguageContext";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { Nav } from "@/app/(ui)/nav";
+import { useApiTokens } from "@/lib/hooks/useApiTokens";
 
-function CancelledTicketsContent({ apiBase }: { apiBase?: string }) {
+function CancelledTicketsContent({ apiBase, token }: { apiBase?: string; token?: string }) {
   const { t } = useLanguage();
   
   return (
@@ -32,7 +33,7 @@ function CancelledTicketsContent({ apiBase }: { apiBase?: string }) {
       
       {/* Tickets List */}
       <main className="py-2 sm:py-3 md:py-4 lg:py-6">
-        <TicketList apiBase={apiBase || "/_api"} status="CANCELLED" />
+        <TicketList apiBase={apiBase || "/_api"} status="CANCELLED" token={token} />
       </main>
     </div>
   );
@@ -40,10 +41,16 @@ function CancelledTicketsContent({ apiBase }: { apiBase?: string }) {
 
 export default function CancelledTicketsPage() {
   const apiBase = process.env.NEXT_PUBLIC_API_BASE;
-  
+  const { getMaintenanceToken } = useApiTokens();
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    getMaintenanceToken().then(setToken);
+  }, [getMaintenanceToken]);
+
   return (
-    <StaticDataProvider apiBase={apiBase}>
-      <CancelledTicketsContent apiBase={apiBase} />
+    <StaticDataProvider apiBase={apiBase} token={token || undefined}>
+      <CancelledTicketsContent apiBase={apiBase} token={token || undefined} />
     </StaticDataProvider>
   );
 }
