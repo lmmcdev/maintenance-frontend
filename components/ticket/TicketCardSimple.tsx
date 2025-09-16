@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { TicketStatus, Ticket, TicketSource } from "../types/ticket";
 import { StatusBadge } from "./StatusBadge";
 import { CancelDialog } from "./dialogs/CancelDialog";
-import { patchStatus, cancelTicket } from "../api/ticketApi";
+import { patchTicketStatus, cancelTicket } from "@/lib/api/client";
 import { useLanguage } from "../context/LanguageContext";
 
 function truncate(txt: string, max = 120) {
@@ -123,10 +123,11 @@ function getLocationDisplay(location?: { category: string; subLocation?: string 
 type TicketCardProps = {
   t: Ticket;
   apiBase: string;
+  token?: string;
   onChanged?: () => void;
 };
 
-export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
+export function TicketCard({ t, apiBase, token, onChanged }: TicketCardProps) {
   const { t: translate, language } = useLanguage();
   const router = useRouter();
   const [busy, setBusy] = useState<"done" | "open" | "cancel" | null>(null);
@@ -137,7 +138,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   async function markDone() {
     try {
       setBusy("done");
-      await patchStatus(apiBase, t.id, "DONE");
+      await patchTicketStatus({ apiBase, token }, t.id, "DONE");
       onChanged?.();
     } catch (e) {
       alert((e as any)?.message ?? translate("error.marking.done"));
@@ -149,7 +150,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   async function reopen() {
     try {
       setBusy("open");
-      await patchStatus(apiBase, t.id, "OPEN");
+      await patchTicketStatus({ apiBase, token }, t.id, "OPEN");
       onChanged?.();
     } catch (e) {
       alert((e as any)?.message ?? translate("error.reopening"));
@@ -161,7 +162,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   async function handleCancelTicket(reason: string) {
     try {
       setBusy("cancel");
-      await cancelTicket(apiBase, t.id, { reason });
+      await cancelTicket({ apiBase, token }, t.id, { reason });
       onChanged?.();
       setShowCancelDialog(false);
       setCancelNote("");

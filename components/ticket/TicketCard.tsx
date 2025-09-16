@@ -11,7 +11,7 @@ import { CancelDialog } from "./dialogs/CancelDialog";
 import { AssignmentDialog } from "./dialogs/AssignmentDialog";
 import { NotesDialog } from "./dialogs/NotesDialog";
 import CustomAudioPlayer from "../CustomAudioPlayer";
-import { patchTicket, patchTicketAssignees, patchStatus, cancelTicket, searchPersons } from "../api/ticketApi";
+import { patchTicket, patchTicketStatus, cancelTicket, searchPersons } from "@/lib/api/client";
 import { useStaticData } from "../context/StaticDataContext";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -44,10 +44,11 @@ function getSourceDisplay(source?: TicketSource | null) {
 type TicketCardProps = {
   t: Ticket;
   apiBase: string;
+  token?: string;
   onChanged?: () => void;
 };
 
-export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
+export function TicketCard({ t, apiBase, token, onChanged }: TicketCardProps) {
   const [busy, setBusy] = useState<string | null>(null);
   const [selectedAssigneeNames, setSelectedAssigneeNames] = useState<string[]>([]);
   const [showAssignConfirmation, setShowAssignConfirmation] = useState(false);
@@ -79,7 +80,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
           assigneeIds.push(match.id);
         } else {
           // Try searching if not in cached data
-          const res = await searchPersons(apiBase, fullName);
+          const res = await searchPersons({ apiBase, token }, fullName);
           const searchMatch = res.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase()) || res[0];
           if (searchMatch?.id) {
             assigneeIds.push(searchMatch.id);
@@ -104,8 +105,8 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
       });
       
       // Use the new patchTicketAssignees function for multiple assignees
-      await patchTicketAssignees(apiBase, t.id, assigneeIds);
-      await patchStatus(apiBase, t.id, "OPEN");
+      await patchTicket({ apiBase, token }, t.id, { assigneeIds });
+      await patchTicketStatus({ apiBase, token }, t.id, "OPEN");
       onChanged?.();
     } catch (e) {
       console.error('Assignment error:', e);
@@ -116,13 +117,13 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
   }
 
   async function markDone() {
-    try { setBusy("done"); await patchStatus(apiBase, t.id, "DONE"); onChanged?.(); }
+    try { setBusy("done"); await patchTicketStatus({ apiBase, token }, t.id, "DONE"); onChanged?.(); }
     catch (e) { alert((e as any)?.message ?? "Error marking done"); }
     finally { setBusy(null); }
   }
 
   async function reopen() {
-    try { setBusy("open"); await patchStatus(apiBase, t.id, "OPEN"); onChanged?.(); }
+    try { setBusy("open"); await patchTicketStatus({ apiBase, token }, t.id, "OPEN"); onChanged?.(); }
     catch (e) { alert((e as any)?.message ?? "Error reopening"); }
     finally { setBusy(null); }
   }
@@ -160,7 +161,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
       setShowCancelDialog(false);
       try { 
         setBusy("cancel"); 
-        await cancelTicket(apiBase, t.id, { reason: cancelNote.trim() }); 
+        await cancelTicket({ apiBase, token }, t.id, { reason: cancelNote.trim() }); 
         onChanged?.(); 
       }
       catch (e) { alert((e as any)?.message ?? "Error canceling"); }
@@ -317,7 +318,7 @@ export function TicketCard({ t, apiBase, onChanged }: TicketCardProps) {
           onChange={async (p) => {
             try {
               setBusy("priority");
-              await patchTicket(apiBase, t.id, { priority: p });
+              await patchTicket({ apiBase, token }, t.id, { priority: p });
               onChanged?.();
             } catch (err: any) {
               alert(err?.message ?? "Error updating priority");

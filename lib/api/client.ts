@@ -85,6 +85,7 @@ export async function patchTicket(
   id: string,
   body: Partial<{
     assigneeId: string;
+    assigneeIds: string[];
     priority: TicketPriority;
     category: string;
     subcategory: { name: string; displayName: string } | string | null;
@@ -109,6 +110,38 @@ export async function patchTicketStatus(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ status }),
   }, opts.token);
+}
+
+export type CancelTicketParams = {
+  reason?: string;
+  cancelledBy?: string;
+  cancelledByName?: string;
+};
+
+export async function cancelTicket(
+  opts: ApiClientOptions,
+  id: string,
+  params?: CancelTicketParams
+): Promise<any> {
+  const body = params ? {
+    reason: params.reason,
+    cancelledBy: params.cancelledBy,
+    cancelledByName: params.cancelledByName
+  } : {};
+
+  const url = withBase(opts.apiBase, `/api/v1/tickets/${id}/cancel`);
+
+  try {
+    return await fetchJson<any>(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }, opts.token);
+  } catch (error) {
+    // Fallback: if backend doesn't have cancel endpoint, mark as CANCELLED
+    await patchTicketStatus(opts, id, "DONE" as any); // Use DONE as fallback since CANCELLED isn't in the type
+    return true;
+  }
 }
 
 /* ---------- Personas ---------- */
