@@ -32,14 +32,19 @@ export type ApiListResponse<T> = {
 };
 export type ApiItemResponse<T> = { success: boolean; data: T };
 
-export type ApiClientOptions = { apiBase?: string };
+export type ApiClientOptions = { apiBase?: string; token?: string };
 
 function withBase(base: string | undefined, path: string) {
   return `${base}${path}`;
 }
 
-async function fetchJson<T>(input: RequestInfo | URL, init?: RequestInit) {
-  const res = await fetch(input, init);
+async function fetchJson<T>(input: RequestInfo | URL, init?: RequestInit, token?: string) {
+  const headers: Record<string, string> = { ...init?.headers } as Record<string, string>;
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(input, { ...init, headers });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
     throw new Error(
@@ -72,7 +77,7 @@ export async function listTickets(
   if (params.sortDir) qs.set("sortDir", params.sortDir);
 
   const url = withBase(opts.apiBase, `/api/v1/tickets?${qs.toString()}`);
-  return fetchJson<ApiListResponse<Ticket>>(url, { cache: "no-store" });
+  return fetchJson<ApiListResponse<Ticket>>(url, { cache: "no-store" }, opts.token);
 }
 
 export async function patchTicket(
@@ -90,7 +95,7 @@ export async function patchTicket(
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
-  });
+  }, opts.token);
 }
 
 export async function patchTicketStatus(
@@ -103,7 +108,7 @@ export async function patchTicketStatus(
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ status }),
-  });
+  }, opts.token);
 }
 
 /* ---------- Personas ---------- */
@@ -115,7 +120,7 @@ export async function searchPersons(
 ): Promise<Person[]> {
   const qs = new URLSearchParams({ q, limit: String(limit) });
   const url = withBase(opts.apiBase, `/api/v1/persons?${qs.toString()}`);
-  const json = await fetchJson<{ data?: { items?: Person[] } }>(url);
+  const json = await fetchJson<{ data?: { items?: Person[] } }>(url, undefined, opts.token);
   return json?.data?.items ?? [];
 }
 
@@ -126,7 +131,7 @@ export async function searchPersonsByDepartment(
 ): Promise<Person[]> {
   const qs = new URLSearchParams({ department, limit: String(limit) });
   const url = withBase(opts.apiBase, `/api/v1/persons?${qs.toString()}`);
-  const json = await fetchJson<{ data?: { items?: Person[] } }>(url);
+  const json = await fetchJson<{ data?: { items?: Person[] } }>(url, undefined, opts.token);
   return json?.data?.items ?? [];
 }
 
@@ -143,7 +148,7 @@ export async function listCategories(
   limit = 200
 ): Promise<UICategory[]> {
   const url = withBase(opts.apiBase, `/api/v1/categories?limit=${limit}`);
-  const json = await fetchJson<any>(url);
+  const json = await fetchJson<any>(url, undefined, opts.token);
   const items: any[] = json?.data?.items ?? json?.items ?? [];
 
   const active = (items || []).filter((c: any) => c?.isActive !== false);

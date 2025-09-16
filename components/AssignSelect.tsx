@@ -7,12 +7,14 @@ function AssignSelect({
   onAssign,
   limit = 10,
   department,
+  token,
 }: {
   apiBase: string;
   disabled?: boolean;
   onAssign: (personId: string) => Promise<void> | void;
   limit?: number;
   department?: string;
+  token?: string;
 }) {
   const [options, setOptions] = useState<Person[]>([]);
   const [loading, setLoading] = useState(false);
@@ -21,9 +23,9 @@ function AssignSelect({
   async function loadDefault() {
     try {
       setLoading(true);
-      const items = department 
-        ? await searchPersonsByDepartment({ apiBase }, department, limit)
-        : await searchPersons({ apiBase }, "", limit);
+      const items = department
+        ? await searchPersonsByDepartment({ apiBase, token }, department, limit)
+        : await searchPersons({ apiBase, token }, "", limit);
       setOptions(items);
     } finally {
       setLoading(false);
@@ -32,7 +34,7 @@ function AssignSelect({
 
   useEffect(() => {
     loadDefault(); // carga inicial
-  }, [apiBase, limit, department]);
+  }, [apiBase, limit, department, token]);
 
   async function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const personId = e.target.value;
