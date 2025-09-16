@@ -71,7 +71,7 @@ export function TicketList({ apiBase, status, token }: TicketListProps) {
     <ul className="p-2 sm:p-3 md:p-4 lg:p-6 space-y-3 sm:space-y-4 md:space-y-6 max-w-screen-xl mx-auto">
       {items.map((t) => (
         <li key={t.id}>
-          <TicketCard t={t} apiBase={apiBase} onChanged={reload} />
+          <TicketCard t={t} apiBase={apiBase} token={token} onChanged={reload} />
         </li>
       ))}
     </ul>

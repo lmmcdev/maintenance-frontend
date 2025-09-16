@@ -13,7 +13,7 @@ import { AssignmentDialog } from "@/components/ticket/dialogs/AssignmentDialog";
 import { NotesDialog } from "@/components/ticket/dialogs/NotesDialog";
 import { AttachmentsDialog } from "@/components/ticket/dialogs/AttachmentsDialog";
 import CustomAudioPlayer from "@/components/CustomAudioPlayer";
-import { patchTicket, patchTicketAssignees, patchStatus, cancelTicket, searchPersons } from "@/components/api/ticketApi";
+import { patchTicket, patchTicketStatus, cancelTicket, searchPersons } from "@/lib/api/client";
 import { useStaticData } from "@/components/context/StaticDataContext";
 import { useLanguage } from "@/components/context/LanguageContext";
 import { StaticDataProvider } from "@/components/context/StaticDataContext";
@@ -111,7 +111,7 @@ function TicketDetailPageContent() {
         if (match?.id) {
           assigneeIds.push(match.id);
         } else {
-          const res = await searchPersons(apiBase!, fullName, token || undefined);
+          const res = await searchPersons({ apiBase: apiBase!, token: token || undefined }, fullName);
           const searchMatch = res.find(p => `${p.firstName} ${p.lastName}`.toLowerCase() === fullName.toLowerCase()) || res[0];
           if (searchMatch?.id) {
             assigneeIds.push(searchMatch.id);
@@ -126,8 +126,8 @@ function TicketDetailPageContent() {
         return;
       }
 
-      await patchTicketAssignees(apiBase!, ticket.id, assigneeIds, token || undefined);
-      await patchStatus(apiBase!, ticket.id, "OPEN", token || undefined);
+      await patchTicket({ apiBase: apiBase!, token: token || undefined }, ticket.id, { assigneeIds });
+      await patchTicketStatus({ apiBase: apiBase!, token: token || undefined }, ticket.id, "OPEN");
       await reloadTicket();
     } catch (e) {
       console.error('Assignment error:', e);
@@ -142,7 +142,7 @@ function TicketDetailPageContent() {
     try {
       setBusy("done");
       const token = await getMaintenanceToken();
-      await patchStatus(apiBase!, ticket.id, "DONE", token || undefined);
+      await patchTicketStatus({ apiBase: apiBase!, token: token || undefined }, ticket.id, "DONE");
       await reloadTicket();
     }
     catch (e) { alert((e as any)?.message ?? "Error marking done"); }
@@ -154,7 +154,7 @@ function TicketDetailPageContent() {
     try {
       setBusy("open");
       const token = await getMaintenanceToken();
-      await patchStatus(apiBase!, ticket.id, "OPEN", token || undefined);
+      await patchTicketStatus({ apiBase: apiBase!, token: token || undefined }, ticket.id, "OPEN");
       await reloadTicket();
     }
     catch (e) { alert((e as any)?.message ?? "Error reopening"); }
@@ -198,7 +198,7 @@ function TicketDetailPageContent() {
       try {
         setBusy("cancel");
         const token = await getMaintenanceToken();
-        await cancelTicket(apiBase!, ticket.id, { reason: cancelNote.trim() }, token || undefined);
+        await cancelTicket({ apiBase: apiBase!, token: token || undefined }, ticket.id, { reason: cancelNote.trim() });
         await reloadTicket();
       }
       catch (e) { alert((e as any)?.message ?? "Error canceling"); }
@@ -602,7 +602,7 @@ function TicketDetailPageContent() {
                   try {
                     setBusy("priority");
                     const token = await getMaintenanceToken();
-                    await patchTicket(apiBase!, ticket.id, { priority: p }, token || undefined);
+                    await patchTicket({ apiBase: apiBase!, token: token || undefined }, ticket.id, { priority: p });
                     await reloadTicket();
                   } catch (err: any) {
                     alert(err?.message ?? "Error updating priority");
