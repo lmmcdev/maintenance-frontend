@@ -8,23 +8,8 @@ import React, {
   ReactNode,
 } from "react";
 import { Person } from "../types/ticket";
-import { searchPersons, searchPersonsByDepartment } from "../api/ticketApi";
+import { searchPersons, searchPersonsByDepartment, listCategories } from "@/lib/api/client";
 
-function normalizeCats(arr: any[]): UICategory[] {
-  const active = (arr || []).filter((c: any) => c?.isActive !== false);
-  return active.map((c: any) => {
-    const name = c?.id ?? c?.name ?? "";
-    const displayName = c?.displayName ?? name;
-    const rawSubs: any[] = c?.subcategories ?? [];
-    const subcats = rawSubs
-      .filter((s: any) => s?.isActive !== false)
-      .map((s: any) => ({
-        name: s?.name ?? "",
-        displayName: s?.displayName ?? s?.name ?? "",
-      }));
-    return { name, displayName, subcats };
-  });
-}
 
 type UICategory = {
   name: string;
@@ -70,24 +55,14 @@ export function StaticDataProvider({
 
       // Fetch persons and categories in parallel
       const [personsData, categoriesResponse] = await Promise.all([
-        searchPersonsByDepartment(apiBase, "MAINTENANCE", 50, token).catch(() => []),
-        (() => {
-          const headers: Record<string, string> = {};
-          if (token) {
-            headers["Authorization"] = `Bearer ${token}`;
-          }
-          return fetch(`${apiBase}/api/v1/categories?limit=200`, { headers })
-            .then((res) => (res.ok ? res.json() : []))
-            .catch(() => []);
-        })()
+        searchPersonsByDepartment({ apiBase, token }, "MAINTENANCE", 50).catch(() => []),
+        listCategories({ apiBase, token }, 200).catch(() => [])
       ]);
 
       setPersons(personsData);
 
-      // Process categories
-      const items =
-        categoriesResponse?.data?.items || categoriesResponse?.items || [];
-      const normalizedCategories = normalizeCats(items);
+      // Process categories - listCategories already returns UICategory[]
+      const normalizedCategories = categoriesResponse || [];
       
       // Add "Other" category as fallback option
       const categoriesWithOther = [

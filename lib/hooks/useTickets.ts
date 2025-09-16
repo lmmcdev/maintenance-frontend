@@ -11,7 +11,7 @@ import {
   type TicketPriority,
 } from "@/lib/api/client";
 
-export function useTickets(apiBase: string, status: TicketStatus) {
+export function useTickets(apiBase: string, status: TicketStatus, token?: string) {
   const [items, setItems] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +22,7 @@ export function useTickets(apiBase: string, status: TicketStatus) {
       setError(null);
       try {
         const json = await listTickets(
-          { apiBase },
+          { apiBase, token },
           { status, limit: 20, sortBy: "createdAt", sortDir: "desc" }
         );
         if (!json.success) throw new Error("API returned success=false");
@@ -33,7 +33,7 @@ export function useTickets(apiBase: string, status: TicketStatus) {
         setLoading(false);
       }
     },
-    [apiBase, status]
+    [apiBase, status, token]
   );
 
   useEffect(() => {
@@ -43,21 +43,21 @@ export function useTickets(apiBase: string, status: TicketStatus) {
   return { items, loading, error, reload };
 }
 
-export function useTicketActions(apiBase: string) {
+export function useTicketActions(apiBase: string, token?: string) {
   async function setStatus(
     id: string,
     status: Extract<TicketStatus, "OPEN" | "DONE">
   ) {
-    await patchTicketStatus({ apiBase }, id, status);
+    await patchTicketStatus({ apiBase, token }, id, status);
   }
 
   async function assign(id: string, personId: string) {
-    await patchTicket({ apiBase }, id, { assigneeId: personId });
-    await patchTicketStatus({ apiBase }, id, "OPEN");
+    await patchTicket({ apiBase, token }, id, { assigneeId: personId });
+    await patchTicketStatus({ apiBase, token }, id, "OPEN");
   }
 
   async function updatePriority(id: string, priority: TicketPriority) {
-    await patchTicket({ apiBase }, id, { priority });
+    await patchTicket({ apiBase, token }, id, { priority });
   }
 
   async function updateCategory(
@@ -76,11 +76,11 @@ export function useTicketActions(apiBase: string) {
             displayName: typeof currentSubcat === "string" ? currentSubcat : "",
           };
 
-    await patchTicket({ apiBase }, id, { category, subcategory: sub });
+    await patchTicket({ apiBase, token }, id, { category, subcategory: sub });
   }
 
   async function updateSubcategory(id: string, subcatName: string) {
-    await patchTicket({ apiBase }, id, {
+    await patchTicket({ apiBase, token }, id, {
       subcategory: { name: subcatName, displayName: subcatName },
     });
   }
