@@ -24,6 +24,16 @@ export type SubLocation =
 export type TicketLocation = {
   category: LocationCategory;
   subLocation?: SubLocation;
+  locationId?: string;
+  locationTypeId?: string;
+  // New structure from API
+  id?: string;
+  location?: {
+    id: string;
+    name: string;
+    locationTypeId: string;
+    [key: string]: any;
+  };
 };
 
 export type Attachment = {
@@ -55,6 +65,7 @@ export type Ticket = {
   audio?: Attachment[] | Attachment | null;
   source?: TicketSource | null;
   location?: TicketLocation | null;
+  locations?: TicketLocation[] | null;
   attachments?: Attachment[] | null; // Email attachments (documents, images, etc.)
   // Legacy support
   audioUrl?: string | null;

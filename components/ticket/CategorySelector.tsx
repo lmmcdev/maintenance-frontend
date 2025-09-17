@@ -12,6 +12,7 @@ type CategorySelectorProps = {
   onChanged?: () => void;
   busy: boolean;
   onOpenChange?: (isOpen: boolean) => void;
+  token?: string;
 };
 
 export function CategorySelector({
@@ -20,6 +21,7 @@ export function CategorySelector({
   onChanged,
   busy,
   onOpenChange,
+  token,
 }: CategorySelectorProps) {
   const { t: translate } = useLanguage();
   const { categories } = useStaticData();
@@ -100,7 +102,7 @@ export function CategorySelector({
         await patchTicket(apiBase, t.id, {
           category: parentCategory, // Set the parent category
           subcategory: subcategoryToAssign,
-        });
+        }, token);
         setSelectedName(categoryName);
         onChanged?.();
         setIsOpen(false);

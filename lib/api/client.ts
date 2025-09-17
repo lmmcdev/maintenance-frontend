@@ -89,6 +89,10 @@ export async function patchTicket(
     priority: TicketPriority;
     category: string;
     subcategory: { name: string; displayName: string } | string | null;
+    locationsIds: Array<{
+      locationTypeId: string;
+      locationId: string;
+    }>;
   }>
 ): Promise<ApiItemResponse<Ticket>> {
   const url = withBase(opts.apiBase, `/api/v1/tickets/${id}`);
