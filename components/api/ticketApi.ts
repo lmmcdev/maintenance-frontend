@@ -14,10 +14,16 @@ export async function patchTicket(
     priority: Ticket["priority"];
     category: string;
     subcategory: { name: string; displayName: string } | string | null;
+    locationsIds: Array<{
+      locationTypeId: string;
+      locationId: string;
+    }>;
   }>,
   token?: string
 ) {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
@@ -177,7 +183,9 @@ export async function patchStatus(
   status: "OPEN" | "DONE" | "CANCELLED",
   token?: string
 ) {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
@@ -197,13 +205,17 @@ export async function cancelTicket(
   params?: CancelTicketParams,
   token?: string
 ) {
-  const body = params ? {
-    reason: params.reason,
-    cancelledBy: params.cancelledBy,
-    cancelledByName: params.cancelledByName
-  } : {};
+  const body = params
+    ? {
+        reason: params.reason,
+        cancelledBy: params.cancelledBy,
+        cancelledByName: params.cancelledByName,
+      }
+    : {};
 
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
@@ -213,7 +225,7 @@ export async function cancelTicket(
     headers,
     body: JSON.stringify(body),
   });
-  
+
   if (!res.ok) {
     // fallback: si tu backend no tiene cancel, lo marcamos CANCELLED como placeholder
     await patchStatus(apiBase, id, "CANCELLED", token);
@@ -244,7 +256,9 @@ export async function searchPersonsByDepartment(
   limit: number = 50,
   token?: string
 ): Promise<Person[]> {
-  const url = `${apiBase}/api/v1/persons?department=${encodeURIComponent(department)}&limit=${limit}`;
+  const url = `${apiBase}/api/v1/persons?department=${encodeURIComponent(
+    department
+  )}&limit=${limit}`;
   const headers: Record<string, string> = {};
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
@@ -256,13 +270,19 @@ export async function searchPersonsByDepartment(
   return json?.data?.items ?? [];
 }
 
-export async function getTicketNotes(apiBase: string, ticketId: string, token?: string) {
+export async function getTicketNotes(
+  apiBase: string,
+  ticketId: string,
+  token?: string
+) {
   const headers: Record<string, string> = {};
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`, { headers });
+  const res = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/notes`, {
+    headers,
+  });
   if (!res.ok) throw new Error(`Get notes failed: HTTP ${res.status}`);
   return res.json();
 }
@@ -278,7 +298,9 @@ export async function addTicketNote(
   },
   token?: string
 ) {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
@@ -308,15 +330,17 @@ interface LocationsResponse {
 }
 
 export async function fetchLocations(
-  locationTypeId: string = "4ff2be35-9501-43e2-9a2e-c9d6480e2b41",
+  apiBase: string,
   page: number = 1,
   pageSize: number = 20,
   searchQuery: string = "",
   token?: string
 ): Promise<Location[]> {
-  const url = `https://compliance-api-fybjasdddtcxhqfw.eastus2-01.azurewebsites.net/api/v1/location-types/${locationTypeId}/locations?page=${page}&pageSize=${pageSize}&q=${encodeURIComponent(searchQuery)}`;
+  const url = `${apiBase}/api/v1/locations`;
 
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }

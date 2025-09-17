@@ -28,7 +28,8 @@ export function AssignmentSelector({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const filteredPeople = peopleList.filter(person =>
-    person.toLowerCase().includes(searchTerm.toLowerCase())
+    person.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    !selectedNames.includes(person) // Filter out already selected people
   );
 
   useEffect(() => {
@@ -46,25 +47,28 @@ export function AssignmentSelector({
     };
   }, [isOpen]);
 
-  const handlePersonToggle = (person: string) => {
-    const newSelected = selectedNames.includes(person)
-      ? selectedNames.filter(name => name !== person)
-      : [...selectedNames, person];
-    
-    onChange(newSelected);
-  };
-
-  const handleAssignClick = () => {
+  const handlePersonSelect = (person: string) => {
     if (!canAssign) {
       alert("Complete category and priority before assigning.");
       return;
     }
-    if (selectedNames.length === 0) return;
-    
-    // Trigger assignment process via onAssign callback
+
+    // Add person to selection and trigger assignment immediately
+    const newSelected = [...selectedNames, person];
+    onChange(newSelected);
+
+    // Trigger assignment process immediately
     if (onAssign) {
-      onAssign(selectedNames);
+      onAssign(newSelected);
     }
+
+    // Clear search and close dropdown after assignment
+    setSearchTerm("");
+    setIsOpen(false);
+  };
+
+  const handleAssignClick = () => {
+    // Since assignment is now automatic, this just closes the dropdown
     setIsOpen(false);
   };
 
@@ -79,13 +83,20 @@ export function AssignmentSelector({
           className="w-full rounded-lg sm:rounded-xl border-2 px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm font-medium outline-none transition-all duration-300 bg-white hover:border-[#00A1FF]/30 focus:border-[#00A1FF] focus:ring-2 focus:ring-[#00A1FF]/10 shadow-sm hover:shadow-md focus:shadow-lg text-left flex items-center justify-between disabled:bg-gray-50 disabled:border-gray-200 disabled:cursor-not-allowed disabled:text-gray-400 border-gray-300 text-gray-700"
         >
           <span>
-            {selectedNames.length === 0 
-              ? (isReassignment 
-                  ? (language === "es" ? "Reasignar a..." : "Reassign to...") 
-                  : (language === "es" ? "Seleccionar asignado(s)..." : "Select assignee(s)...")) 
-              : selectedNames.length === 1 
+            {selectedNames.length === 0
+              ? (isReassignment
+                  ? (language === "es" ? "Reasignar a..." : "Reassign to...")
+                  : (language === "es" ? "Seleccionar asignado(s)..." : "Select assignee(s)..."))
+              : selectedNames.length === 1
                 ? selectedNames[0]
-                : `${selectedNames.length} ${language === "es" ? "personas seleccionadas" : "people selected"}`
+                : (() => {
+                    const joinedNames = selectedNames.join(", ");
+                    if (joinedNames.length > 50) {
+                      return `${selectedNames.length} ${language === "es" ? "personas seleccionadas" : "people selected"}`;
+                    } else {
+                      return joinedNames;
+                    }
+                  })()
             }
           </span>
           <svg 
@@ -98,6 +109,37 @@ export function AssignmentSelector({
             <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
+
+        {/* Selected people chips */}
+        {selectedNames.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {selectedNames.map((person, index) => (
+              <div
+                key={`${person}-${index}`}
+                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs"
+              >
+                <span>{person}</span>
+                <button
+                  onClick={() => {
+                    const newSelected = selectedNames.filter((_, i) => i !== index);
+                    onChange(newSelected);
+
+                    // Trigger assignment with updated list
+                    if (onAssign) {
+                      onAssign(newSelected);
+                    }
+                  }}
+                  className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                  disabled={disabled}
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Dropdown */}
         {isOpen && !disabled && (
@@ -116,27 +158,18 @@ export function AssignmentSelector({
 
             {/* People list */}
             <div className="max-h-60 sm:max-h-72 overflow-y-auto">
-              {filteredPeople.map((person, index) => (
-                <div
+              {filteredPeople.map((person) => (
+                <button
                   key={person}
-                  onClick={() => handlePersonToggle(person)}
-                  className={`flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 cursor-pointer transition-colors duration-150 ${
-                    selectedNames.includes(person) ? 'bg-[#00A1FF]/10 hover:bg-[#00A1FF]/20' : 'hover:bg-gray-50'
-                  }`}
+                  onClick={() => handlePersonSelect(person)}
+                  className="w-full flex items-center px-2 sm:px-3 py-2 hover:bg-gray-50 cursor-pointer transition-colors duration-150 text-left"
                 >
-                  <input
-                    type="checkbox"
-                    checked={selectedNames.includes(person)}
-                    onChange={() => handlePersonToggle(person)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-4 h-4 text-[#00A1FF] border-gray-300 rounded focus:ring-[#00A1FF]/20 focus:ring-2"
-                  />
-                  <span className={`text-xs sm:text-sm flex-1 ${
-                    selectedNames.includes(person) ? 'text-[#00A1FF] font-medium' : 'text-gray-700'
-                  }`}>{person}</span>
-                </div>
+                  <span className="text-xs sm:text-sm text-gray-700 flex-1">
+                    {person}
+                  </span>
+                </button>
               ))}
-              
+
               {filteredPeople.length === 0 && (
                 <div className="px-2 sm:px-3 py-4 text-xs sm:text-sm text-gray-500 text-center">
                   {language === "es" ? "No se encontraron personas" : "No people found"}
@@ -150,6 +183,12 @@ export function AssignmentSelector({
                 <button
                   onClick={() => {
                     onChange([]);
+
+                    // Trigger assignment with empty list (unassign)
+                    if (onAssign) {
+                      onAssign([]);
+                    }
+
                     setIsOpen(false);
                   }}
                   className="px-3 py-1.5 text-xs sm:text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
@@ -158,11 +197,9 @@ export function AssignmentSelector({
                 </button>
                 <button
                   onClick={handleAssignClick}
-                  className="px-3 py-1.5 text-xs sm:text-sm bg-[#00A1FF] text-white rounded-md hover:bg-[#0081cc] transition-colors"
+                  className="px-3 py-1.5 text-xs sm:text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
                 >
-                  {isReassignment 
-                    ? (language === "es" ? "Reasignar" : "Reassign") 
-                    : (language === "es" ? "Asignar" : "Assign")} ({selectedNames.length})
+                  {language === "es" ? "Cerrar" : "Close"}
                 </button>
               </div>
             )}

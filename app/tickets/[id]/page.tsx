@@ -293,12 +293,15 @@ function TicketDetailPageContent() {
     }
   };
 
-  const getLocationDisplay = (location?: { category: string; subLocation?: string } | null) => {
-    if (!location) return null;
+  const getLocationDisplay = (locations?: Array<{ category: string; subLocation?: string; locationId?: string }> | { category: string; subLocation?: string } | null) => {
+    // Handle both single location (legacy) and multiple locations
+    const locationArray = Array.isArray(locations) ? locations : (locations ? [locations] : []);
+
+    if (!locationArray || locationArray.length === 0) return null;
 
     const locationLabels = {
       "ADULT DAY CARE": language === "es" ? "Centro de Día" : "Adult Day Care",
-      "MEDICAL CENTER": language === "es" ? "Centro Médico" : "Medical Center", 
+      "MEDICAL CENTER": language === "es" ? "Centro Médico" : "Medical Center",
       "Pharmacy": "Pharmacy",
       "OTC": "OTC",
       "Research": "Research",
@@ -328,7 +331,7 @@ function TicketDetailPageContent() {
       ADC_TAMARAC: "ADC Tamarac",
       ADC_WEST_PALM_BEACH: "ADC West Palm Beach",
       ADC_WESTCHESTER: "ADC Westchester",
-      
+
       // Medical Center locations
       HIALEAH_MC: "Hialeah MC",
       HIALEAH_WEST_MC: "Hialeah West MC",
@@ -352,14 +355,34 @@ function TicketDetailPageContent() {
       BIRD_ROAD_SPECIALIST: "Bird Road Specialist"
     };
 
-    const categoryText = locationLabels[location.category as keyof typeof locationLabels] || location.category;
-    const subLocationText = location.subLocation ? subLocationLabels[location.subLocation as keyof typeof subLocationLabels] || location.subLocation : null;
+    if (locationArray.length === 1) {
+      const location = locationArray[0];
+      const categoryText = locationLabels[location.category as keyof typeof locationLabels] || location.category;
+      const subLocationText = location.subLocation ? subLocationLabels[location.subLocation as keyof typeof subLocationLabels] || location.subLocation : null;
 
-    return {
-      text: subLocationText ? `${categoryText} - ${subLocationText}` : categoryText,
-      icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z",
-      color: "text-purple-600"
-    };
+      return {
+        text: subLocationText ? `${categoryText} - ${subLocationText}` : categoryText,
+        icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z",
+        color: "text-purple-600"
+      };
+    } else {
+      // Multiple locations - show count and first few names
+      const locationNames = locationArray.map(location => {
+        const categoryText = locationLabels[location.category as keyof typeof locationLabels] || location.category;
+        const subLocationText = location.subLocation ? subLocationLabels[location.subLocation as keyof typeof subLocationLabels] || location.subLocation : null;
+        return subLocationText ? `${categoryText} - ${subLocationText}` : categoryText;
+      });
+
+      const displayText = locationNames.length > 2
+        ? `${locationNames.slice(0, 2).join(", ")} +${locationNames.length - 2} ${language === "es" ? "más" : "more"}`
+        : locationNames.join(", ");
+
+      return {
+        text: displayText,
+        icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z",
+        color: "text-purple-600"
+      };
+    }
   };
 
   return (
@@ -518,15 +541,33 @@ function TicketDetailPageContent() {
               
               {/* Bottom row: Location (if exists) */}
               {(() => {
-                const locationInfo = getLocationDisplay(ticket.location);
-                if (!locationInfo) return null;
-                
+                // Handle the new ticket locations structure
+                let displayLocations: any[] = [];
+
+                if (ticket.locations && Array.isArray(ticket.locations)) {
+                  displayLocations = ticket.locations.map(loc => ({
+                    category: "API_LOCATIONS",
+                    locationId: loc.id || loc.location?.id,
+                    name: loc.location?.name || `Location ${loc.id}`,
+                  }));
+                } else if (ticket.location) {
+                  displayLocations = [ticket.location];
+                }
+
+                if (displayLocations.length === 0) return null;
+
+                // Show location names directly for API locations
+                const locationNames = displayLocations.map(loc => loc.name || loc.category);
+                const displayText = locationNames.length > 2
+                  ? `${locationNames.slice(0, 2).join(", ")} +${locationNames.length - 2} ${language === "es" ? "más" : "more"}`
+                  : locationNames.join(", ");
+
                 return (
-                  <div className={`flex items-center gap-1 font-medium ${locationInfo.color}`}>
+                  <div className="flex items-center gap-1 font-medium text-purple-600">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={locationInfo.icon} />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span>{locationInfo.text}</span>
+                    <span>{displayText}</span>
                   </div>
                 );
               })()}
@@ -612,16 +653,57 @@ function TicketDetailPageContent() {
                 }}
               />
 
-              <CategorySelector t={ticket} apiBase={apiBase!} onChanged={reloadTicket} busy={!!busy} />
+              <CategorySelector t={ticket} apiBase={apiBase!} onChanged={reloadTicket} busy={!!busy} token={currentToken || undefined} />
 
               <LocationSelector
-                value={ticket.location}
-                onChange={(location) => {
-                  // For now, just log the change - backend integration comes later
-                  console.log('Location changed:', location);
-                  // In the future, this would call an API to update the ticket location
+                value={(() => {
+                  // Convert ticket locations to LocationSelector format
+                  if (ticket.locations && Array.isArray(ticket.locations)) {
+                    return ticket.locations.map(loc => ({
+                      category: "API_LOCATIONS" as any,
+                      subLocation: (loc.id || loc.location?.id) as any,
+                      locationId: loc.id || loc.location?.id,
+                      locationTypeId: loc.locationTypeId || loc.location?.locationTypeId,
+                    }));
+                  } else if (ticket.location) {
+                    return [{
+                      category: ticket.location.category,
+                      subLocation: ticket.location.subLocation,
+                      locationId: ticket.location.locationId,
+                      locationTypeId: ticket.location.locationTypeId,
+                    }];
+                  }
+                  return [];
+                })()}
+                onChange={async (locations) => {
+                  // Allow clearing all locations
+                  const validLocations = locations.filter(loc =>
+                    loc.locationId && loc.locationTypeId
+                  );
+
+                  try {
+                    setBusy("location");
+                    const token = await getMaintenanceToken();
+                    await patchTicket(
+                      { apiBase: apiBase!, token: token || undefined },
+                      ticket.id,
+                      {
+                        locationsIds: validLocations.map(loc => ({
+                          locationTypeId: loc.locationTypeId!,
+                          locationId: loc.locationId!
+                        }))
+                      }
+                    );
+                    await reloadTicket();
+                  } catch (err: any) {
+                    alert(err?.message ?? "Error updating locations");
+                  } finally {
+                    setBusy(null);
+                  }
                 }}
                 disabled={!!busy}
+                token={currentToken || undefined}
+                apiBase={apiBase}
               />
 
               <AssignmentSelector
