@@ -45,7 +45,7 @@ jobs:
           NEXT_PUBLIC_API_BASE: https://maintenance-api-e5a4d3d9fjesgzd9.eastus2-01.azurewebsites.net
           NEXT_PUBLIC_AZURE_CLIENT_ID: 08e5a940-4349-45b0-94ce-46505e0a99a3
           NEXT_PUBLIC_AZURE_AUTHORITY: https://login.microsoftonline.com/7313ad10-b885-4b50-9c75-9dbbd975618f
-          NEXT_PUBLIC_AZURE_REDIRECT_URI: https://maintenance.axislmmc.com
+          NEXT_PUBLIC_AZURE_REDIRECT_URI: https://maintenance.aixalmmc.com
           NEXT_PUBLIC_NOTIFICATIONHUBS_URI: https://cservicesapi.azurewebsites.net/api/registerDevice
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
