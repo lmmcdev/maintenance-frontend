@@ -38,20 +38,107 @@ function withBase(base: string | undefined, path: string) {
   return `${base}${path}`;
 }
 
-async function fetchJson<T>(input: RequestInfo | URL, init?: RequestInit, token?: string) {
+// Token refresh callback type
+type TokenRefreshCallback = () => Promise<string | null>;
+
+let tokenRefreshCallback: TokenRefreshCallback | null = null;
+
+// Set the token refresh callback
+export function setTokenRefreshCallback(callback: TokenRefreshCallback | null) {
+  tokenRefreshCallback = callback;
+}
+
+async function fetchJson<T>(input: RequestInfo | URL, init?: RequestInit, token?: string): Promise<T> {
+  return fetchWithRetry<T>(input, init, token);
+}
+
+async function fetchWithRetry<T>(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  token?: string,
+  isRetry: boolean = false
+): Promise<T> {
   const headers: Record<string, string> = { ...init?.headers } as Record<string, string>;
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
   const res = await fetch(input, { ...init, headers });
+
+  // Handle 401 Unauthorized
+  if (res.status === 401 && !isRetry && tokenRefreshCallback) {
+    console.warn('🔄 Token expired, attempting to refresh...');
+
+    try {
+      const newToken = await tokenRefreshCallback();
+      if (newToken) {
+        console.log('✅ Token refreshed, retrying request...');
+        return fetchWithRetry<T>(input, init, newToken, true);
+      }
+    } catch (error) {
+      console.error('❌ Failed to refresh token:', error);
+    }
+  }
+
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
     throw new Error(
       `HTTP ${res.status} ${res.statusText}${txt ? ` - ${txt}` : ""}`
     );
   }
+
   return res.json() as Promise<T>;
+}
+
+// Export the retry-enabled fetch for other modules to use
+export async function fetchWithAuth<T>(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  token?: string
+): Promise<T> {
+  return fetchWithRetry<T>(input, init, token);
+}
+
+// Helper for raw responses (not JSON)
+export async function fetchRawWithAuth(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  token?: string
+): Promise<Response> {
+  const headers: Record<string, string> = { ...init?.headers } as Record<string, string>;
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetchWithRetryRaw(input, { ...init, headers });
+  return res;
+}
+
+async function fetchWithRetryRaw(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  isRetry: boolean = false
+): Promise<Response> {
+  const res = await fetch(input, init);
+
+  // Handle 401 Unauthorized
+  if (res.status === 401 && !isRetry && tokenRefreshCallback) {
+    console.warn('🔄 Token expired, attempting to refresh...');
+
+    try {
+      const newToken = await tokenRefreshCallback();
+      if (newToken) {
+        console.log('✅ Token refreshed, retrying request...');
+        const newHeaders = { ...init?.headers } as Record<string, string>;
+        newHeaders['Authorization'] = `Bearer ${newToken}`;
+        return fetchWithRetryRaw(input, { ...init, headers: newHeaders }, true);
+      }
+    } catch (error) {
+      console.error('❌ Failed to refresh token:', error);
+    }
+  }
+
+  return res;
 }
 
 /* ---------- Tickets ---------- */

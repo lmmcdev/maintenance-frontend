@@ -41,12 +41,38 @@ function CancelledTicketsContent({ apiBase, token }: { apiBase?: string; token?:
 
 export default function CancelledTicketsPage() {
   const apiBase = process.env.NEXT_PUBLIC_API_BASE;
-  const { getMaintenanceToken } = useApiTokens();
+  const { getMaintenanceToken, isLoading } = useApiTokens();
   const [token, setToken] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    getMaintenanceToken().then(setToken);
+    const initializeToken = async () => {
+      try {
+        console.log('🚀 Initializing Cancelled Tickets token...');
+        const newToken = await getMaintenanceToken();
+        setToken(newToken);
+        setIsInitialized(true);
+        console.log('✅ Cancelled Tickets token initialized:', newToken ? 'Available' : 'Not available');
+      } catch (error) {
+        console.error('❌ Failed to initialize cancelled tickets token:', error);
+        setIsInitialized(true); // Still allow the app to load
+      }
+    };
+
+    initializeToken();
   }, [getMaintenanceToken]);
+
+  // Show loading state while initializing
+  if (!isInitialized || isLoading) {
+    return (
+      <div className="min-h-dvh bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-[#00A1FF] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Inicializando tickets cancelados...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <StaticDataProvider apiBase={apiBase} token={token || undefined}>

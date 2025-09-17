@@ -4,6 +4,21 @@
 "use client";
 import { useAuth } from '../auth/hooks';
 import { useState, useCallback, useEffect } from 'react';
+import { setTokenRefreshCallback } from '../api/client';
+
+// Helper function to check if JWT token is about to expire (within 5 minutes)
+function isTokenExpiring(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const exp = payload.exp * 1000; // Convert to milliseconds
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000; // 5 minutes in ms
+
+    return (exp - now) <= fiveMinutes;
+  } catch {
+    return true; // If we can't parse it, consider it expired
+  }
+}
 
 interface ApiTokens {
   maintenanceApi: string | null;
@@ -71,7 +86,15 @@ export function useApiTokens() {
   const getMaintenanceToken = useCallback(async () => {
     if (!account || !tokenService) return null;
 
+    // Check if current token is still valid
+    const currentToken = tokenStatus.tokens.maintenanceApi;
+    if (currentToken && !isTokenExpiring(currentToken)) {
+      console.log('🎫 Using cached maintenance token');
+      return currentToken;
+    }
+
     try {
+      console.log('🔄 Fetching fresh maintenance token...');
       const token = await tokenService.getMaintenanceApiToken(account);
       setTokenStatus(prev => ({
         ...prev,
@@ -82,13 +105,21 @@ export function useApiTokens() {
       console.error('❌ Error acquiring maintenance token:', error);
       return null;
     }
-  }, [account, tokenService]);
+  }, [account, tokenService, tokenStatus.tokens.maintenanceApi]);
 
   // Get specific token for notification hub
   const getNotificationHubToken = useCallback(async () => {
     if (!account || !tokenService) return null;
 
+    // Check if current token is still valid
+    const currentToken = tokenStatus.tokens.notificationHub;
+    if (currentToken && !isTokenExpiring(currentToken)) {
+      console.log('🎫 Using cached notification hub token');
+      return currentToken;
+    }
+
     try {
+      console.log('🔄 Fetching fresh notification hub token...');
       const token = await tokenService.getNotificationHubToken(account);
       setTokenStatus(prev => ({
         ...prev,
@@ -99,7 +130,7 @@ export function useApiTokens() {
       console.error('❌ Error acquiring notification hub token:', error);
       return null;
     }
-  }, [account, tokenService]);
+  }, [account, tokenService, tokenStatus.tokens.notificationHub]);
 
   // Clear tokens when user logs out
   useEffect(() => {
@@ -114,6 +145,28 @@ export function useApiTokens() {
       });
     }
   }, [isAuthenticated]);
+
+  // Set up token refresh callback for API client
+  useEffect(() => {
+    if (isAuthenticated && account && tokenService) {
+      setTokenRefreshCallback(async () => {
+        try {
+          console.log('🔄 Refreshing maintenance token...');
+          const newToken = await tokenService.getMaintenanceApiToken(account);
+          setTokenStatus(prev => ({
+            ...prev,
+            tokens: { ...prev.tokens, maintenanceApi: newToken }
+          }));
+          return newToken;
+        } catch (error) {
+          console.error('❌ Token refresh failed:', error);
+          return null;
+        }
+      });
+    } else {
+      setTokenRefreshCallback(null);
+    }
+  }, [isAuthenticated, account, tokenService]);
 
   return {
     ...tokenStatus,
