@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { UICategory } from "../types/ticket";
+import { fetchWithAuth } from "../../lib/api/client";
 
 function normalizeCats(arr: any[]): UICategory[] {
   const active = (arr || []).filter((c: any) => c?.isActive !== false);
@@ -25,22 +26,24 @@ export function useCategories(apiBase: string, token?: string) {
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
+    if (!token) {
+      // Don't attempt to fetch without a token
+      return;
+    }
+
     let abort = false;
     (async () => {
       setLoading(true);
       setError(null);
       try {
-        const headers: Record<string, string> = {};
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
-        }
-        const res = await fetch(`${apiBase}/api/v1/categories?limit=200`, { headers });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
+        console.log('📂 Fetching categories with retry system...');
+        const json = await fetchWithAuth<any>(`${apiBase}/api/v1/categories?limit=200`, {}, token);
         const items = json?.data?.items ?? json?.items ?? [];
         const norm = normalizeCats(items);
         if (!abort) setCats(norm);
+        console.log('✅ Categories loaded successfully:', norm.length);
       } catch (e: any) {
+        console.error('❌ Categories fetch failed:', e);
         if (!abort) setError(e?.message || "Categories error");
       } finally {
         if (!abort) setLoading(false);

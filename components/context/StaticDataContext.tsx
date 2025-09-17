@@ -49,14 +49,26 @@ export function StaticDataProvider({
   const [error, setError] = useState<string | null>(null);
 
   const fetchStaticData = async () => {
+    if (!token) {
+      console.log('⏳ StaticDataProvider: No token available, skipping fetch');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
+      console.log('📊 StaticDataProvider: Fetching static data...');
 
       // Fetch persons and categories in parallel
       const [personsData, categoriesResponse] = await Promise.all([
-        searchPersonsByDepartment({ apiBase, token }, "MAINTENANCE", 50).catch(() => []),
-        listCategories({ apiBase, token }, 200).catch(() => [])
+        searchPersonsByDepartment({ apiBase, token }, "MAINTENANCE", 50).catch((err) => {
+          console.error('Failed to fetch persons:', err);
+          return [];
+        }),
+        listCategories({ apiBase, token }, 200).catch((err) => {
+          console.error('Failed to fetch categories:', err);
+          return [];
+        })
       ]);
 
       setPersons(personsData);
@@ -86,8 +98,14 @@ export function StaticDataProvider({
           .sort((a, b) => a.localeCompare(b));
         setPeopleList(list);
       }
+
+      console.log('✅ StaticDataProvider: Data loaded successfully', {
+        persons: personsData.length,
+        categories: normalizedCategories.length,
+        peopleList: personsData.length > 0 ? personsData.length : 'using fallback'
+      });
     } catch (err) {
-      console.error("Error fetching static data:", err);
+      console.error("❌ StaticDataProvider: Error fetching static data:", err);
       setError("Failed to load static data");
 
       // Set fallback data even on error
@@ -109,6 +127,24 @@ export function StaticDataProvider({
   };
 
   useEffect(() => {
+    if (!token) {
+      // When there's no token, set loading to false and use fallback data
+      setLoading(false);
+      const fallbackList = [
+        "Juan Carlos Gonzalez",
+        "Eugenio Suarez",
+        "Elpidio Davila",
+        "Roger Membreno",
+        "Lino Munoz",
+        "Ariel Caballero",
+        "Ramon Aguilera",
+        "Raul Garcia",
+        "Carlos Pena",
+      ].sort((a, b) => a.localeCompare(b));
+      setPeopleList(fallbackList);
+      return;
+    }
+
     fetchStaticData();
   }, [apiBase, token]);
 
