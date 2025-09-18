@@ -33,7 +33,7 @@ function CancelledTicketsContent({ apiBase, token }: { apiBase?: string; token?:
       
       {/* Tickets List */}
       <main className="py-2 sm:py-3 md:py-4 lg:py-6">
-        <TicketList apiBase={apiBase || "/_api"} status="CANCELLED" token={token} />
+        <TicketList apiBase={apiBase || "/_api"} filters={{ status: "CANCELLED" }} token={token} />
       </main>
     </div>
   );
