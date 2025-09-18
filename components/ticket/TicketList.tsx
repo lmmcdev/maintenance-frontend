@@ -1,19 +1,18 @@
 "use client";
 
 import React from "react";
-import { TicketStatus } from "../types/ticket";
-import { useTickets } from "../hooks/useTickets";
+import { useTickets, TicketFilters } from "../hooks/useTickets";
 import { TicketCard } from "./TicketCardSimple";
 import { useLanguage } from "../context/LanguageContext";
 
 type TicketListProps = {
   apiBase: string;
-  status: TicketStatus;
+  filters: TicketFilters;
   token?: string;
 };
 
-export function TicketList({ apiBase, status, token }: TicketListProps) {
-  const { items, loading, error, reload } = useTickets(apiBase, status, token);
+export function TicketList({ apiBase, filters, token }: TicketListProps) {
+  const { items, loading, error, reload } = useTickets(apiBase, filters, token);
   const { t } = useLanguage();
 
   if (loading)
@@ -62,7 +61,7 @@ export function TicketList({ apiBase, status, token }: TicketListProps) {
           {t("no.tickets.found")}
         </p>
         <p className="text-gray-500 text-xs sm:text-sm mt-1">
-          {t("no.tickets.moment", { status: status.toLowerCase() })}
+          {t("no.tickets.moment", { status: filters.status.toLowerCase() })}
         </p>
       </div>
     );

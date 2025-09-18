@@ -3,7 +3,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { Ticket, TicketStatus, ListResponse } from "../types/ticket";
 
-export function useTickets(apiBase: string, status: TicketStatus, token?: string) {
+export interface TicketFilters {
+  status: TicketStatus;
+  createdFrom?: Date;
+  createdTo?: Date;
+  category?: string;
+  priority?: string;
+  q?: string; // Search query
+}
+
+export function useTickets(apiBase: string, filters: TicketFilters, token?: string) {
   const [items, setItems] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -13,13 +22,44 @@ export function useTickets(apiBase: string, status: TicketStatus, token?: string
       setLoading(true);
       setError(null);
       try {
-        const url = `${apiBase}/api/v1/tickets?status=${encodeURIComponent(
-          status
-        )}&limit=20&sortBy=createdAt&sortDir=desc`;
+        // Build query parameters
+        const params = new URLSearchParams();
+
+        // Always include status, limit, and sorting
+        params.append('status', filters.status);
+        params.append('limit', '20');
+        params.append('sortBy', 'createdAt');
+        params.append('sortDir', 'desc');
+
+        // Add optional filters
+        if (filters.createdFrom) {
+          // Format date as YYYY-MM-DD
+          const fromDate = filters.createdFrom.toISOString().split('T')[0];
+          params.append('createdFrom', fromDate);
+        }
+        if (filters.createdTo) {
+          // Format date as YYYY-MM-DD
+          const toDate = filters.createdTo.toISOString().split('T')[0];
+          params.append('createdTo', toDate);
+        }
+        if (filters.category) {
+          params.append('category', filters.category);
+        }
+        if (filters.priority) {
+          params.append('priority', filters.priority);
+        }
+        if (filters.q) {
+          params.append('q', filters.q);
+        }
+
+        const url = `${apiBase}/api/v1/tickets?${params.toString()}`;
+        console.log('Tickets API URL:', url);
+
         const headers: Record<string, string> = {};
         if (token) {
           headers["Authorization"] = `Bearer ${token}`;
         }
+
         const res = await fetch(url, { headers });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json: ListResponse = await res.json();
@@ -31,7 +71,7 @@ export function useTickets(apiBase: string, status: TicketStatus, token?: string
         setLoading(false);
       }
     };
-  }, [apiBase, status, token]);
+  }, [apiBase, filters, token]);
 
   useEffect(() => {
     reload();
