@@ -10,6 +10,9 @@ type FilePreviewDialogProps = {
   onClose: () => void;
   onNavigate?: (direction: 'prev' | 'next') => void;
   showNavigation?: boolean;
+  ticketId?: string;
+  apiBase?: string;
+  token?: string;
 };
 
 export function FilePreviewDialog({
@@ -17,7 +20,10 @@ export function FilePreviewDialog({
   attachment,
   onClose,
   onNavigate,
-  showNavigation = false
+  showNavigation = false,
+  ticketId,
+  apiBase,
+  token
 }: FilePreviewDialogProps) {
   const { language } = useLanguage();
   const [loading, setLoading] = useState(false);
@@ -102,13 +108,15 @@ export function FilePreviewDialog({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (imageZoom > 1) {
+      e.preventDefault();
       setIsDragging(true);
       setDragStart({ x: e.clientX - imagePosition.x, y: e.clientY - imagePosition.y });
     }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
+    if (isDragging && imageZoom > 1) {
+      e.preventDefault();
       setImagePosition({
         x: e.clientX - dragStart.x,
         y: e.clientY - dragStart.y
@@ -116,13 +124,99 @@ export function FilePreviewDialog({
     }
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     setIsDragging(false);
+  };
+
+  const handleImageClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (imageZoom === 1) {
+      handleZoomIn();
+    }
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (!isImage) return;
+
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -1 : 1;
+    const zoomFactor = 1.2;
+    const newZoom = delta > 0
+      ? Math.min(imageZoom * zoomFactor, 5)
+      : Math.max(imageZoom / zoomFactor, 0.1);
+
+    setImageZoom(newZoom);
+
+    // Reset position if zooming out to 1x
+    if (newZoom === 1) {
+      setImagePosition({ x: 0, y: 0 });
+    }
+  };
+
+  const handlePrint = () => {
+    if (!attachment?.url) return;
+
+    // Create a new window for printing
+    const printWindow = window.open(attachment.url, '_blank');
+    if (printWindow) {
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
+  };
+
+  const handleFullscreen = () => {
+    if (!attachment?.url) return;
+    window.open(attachment.url, '_blank');
+  };
+
+  const handleDownload = async () => {
+    if (!attachment) return;
+
+    // If we have ticketId and apiBase, use the download endpoint
+    if (ticketId && apiBase && attachment.id) {
+      try {
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const downloadUrl = `${apiBase}/api/v1/tickets/${ticketId}/attachments/${attachment.id}/download`;
+
+        // Create a temporary link to trigger download
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = attachment.filename;
+
+        // Set headers by creating a fetch request and then trigger download
+        const response = await fetch(downloadUrl, { headers });
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          link.href = url;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        } else {
+          throw new Error('Download failed');
+        }
+      } catch (error) {
+        console.error('Download failed:', error);
+        // Fallback to direct URL
+        window.open(attachment.url, '_blank');
+      }
+    } else {
+      // Fallback to direct URL
+      window.open(attachment.url, '_blank');
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (!show) return;
-    
+
     if (e.key === 'Escape') {
       onClose();
     } else if (onNavigate) {
@@ -188,8 +282,9 @@ export function FilePreviewDialog({
               <div className="flex items-center gap-1 bg-black/30 rounded-lg p-1">
                 <button
                   onClick={handleZoomOut}
-                  className="p-1 md:p-2 text-white hover:bg-white/20 rounded transition-colors"
+                  className="p-1 md:p-2 text-white hover:bg-white/20 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   title={language === "es" ? "Alejar" : "Zoom Out"}
+                  disabled={imageZoom <= 0.1}
                 >
                   <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
@@ -200,8 +295,9 @@ export function FilePreviewDialog({
                 </span>
                 <button
                   onClick={handleZoomIn}
-                  className="p-1 md:p-2 text-white hover:bg-white/20 rounded transition-colors"
+                  className="p-1 md:p-2 text-white hover:bg-white/20 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   title={language === "es" ? "Acercar" : "Zoom In"}
+                  disabled={imageZoom >= 5}
                 >
                   <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
@@ -214,6 +310,30 @@ export function FilePreviewDialog({
                 >
                   <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
+            {/* PDF Controls */}
+            {isPDF && (
+              <div className="flex items-center gap-1 bg-black/30 rounded-lg p-1">
+                <button
+                  onClick={handlePrint}
+                  className="p-1 md:p-2 text-white hover:bg-white/20 rounded transition-colors"
+                  title={language === "es" ? "Imprimir" : "Print"}
+                >
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={handleFullscreen}
+                  className="p-1 md:p-2 text-white hover:bg-white/20 rounded transition-colors"
+                  title={language === "es" ? "Pantalla completa" : "Fullscreen"}
+                >
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4a2 2 0 012-2h4M4 16v4a2 2 0 002 2h4M16 4h4a2 2 0 012 2v4M16 20h4a2 2 0 002-2v-4" />
                   </svg>
                 </button>
               </div>
@@ -245,7 +365,7 @@ export function FilePreviewDialog({
 
             {/* Download Button */}
             <button
-              onClick={() => window.open(attachment.url, '_blank')}
+              onClick={handleDownload}
               className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
               title={language === "es" ? "Descargar" : "Download"}
             >
@@ -292,50 +412,137 @@ export function FilePreviewDialog({
           <div className="w-full h-full">
             {/* Image Preview */}
             {isImage && attachment.url && (
-              <div 
-                className={`relative max-w-full max-h-full overflow-hidden ${imageZoom > 1 ? 'cursor-move' : 'cursor-zoom-in'}`}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-                onClick={imageZoom === 1 ? handleZoomIn : undefined}
+              <div
+                className="w-full h-full flex items-center justify-center relative overflow-hidden"
+                onWheel={handleWheel}
               >
-                <img
-                  src={attachment.url}
-                  alt={attachment.filename}
-                  className="max-w-full max-h-full object-contain transition-transform duration-200"
+                <div
+                  className={`relative select-none ${imageZoom > 1 ? 'cursor-move' : 'cursor-zoom-in'}`}
                   style={{
-                    transform: `scale(${imageZoom}) translate(${imagePosition.x / imageZoom}px, ${imagePosition.y / imageZoom}px)`,
-                    transformOrigin: 'center'
+                    width: 'fit-content',
+                    height: 'fit-content',
+                    maxWidth: '100%',
+                    maxHeight: '100%'
                   }}
-                  onLoad={handleImageLoad}
-                  onError={handleImageError}
-                  draggable={false}
-                />
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                  onClick={handleImageClick}
+                >
+                  <img
+                    src={attachment.url}
+                    alt={attachment.filename}
+                    className="block shadow-2xl"
+                    style={{
+                      transform: `scale(${imageZoom}) translate(${imagePosition.x / imageZoom}px, ${imagePosition.y / imageZoom}px)`,
+                      transformOrigin: 'center',
+                      maxHeight: 'calc(100vh - 8rem)',
+                      maxWidth: 'calc(100vw - 4rem)',
+                      transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+                      userSelect: 'none',
+                      pointerEvents: 'none'
+                    }}
+                    onLoad={handleImageLoad}
+                    onError={handleImageError}
+                    draggable={false}
+                  />
+                </div>
               </div>
             )}
 
             {/* PDF Preview */}
             {isPDF && attachment.url && (
               <div className="w-full h-full">
-                {showIframe && (
-                  <iframe
-                    key={iframeKey}
-                    src={`https://docs.google.com/viewer?url=${encodeURIComponent(attachment.url)}&embedded=true&chrome=false&dov=1&rm=minimal&view=FitH`}
-                    className="w-full h-full border-none"
-                    title={attachment.filename}
-                    width="100%"
-                    height="100%"
-                    frameBorder="0"
-                    scrolling="auto"
-                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                    style={{ minHeight: '100vh', minWidth: '100vw' }}
-                    onLoad={() => setLoading(false)}
-                    onError={() => {
-                      setLoading(false);
-                      setError('Preview not available');
-                    }}
-                  />
+                {error ? (
+                  <div className="text-center text-white h-full flex flex-col justify-center">
+                    <div className="text-8xl mb-6">📄</div>
+                    <h3 className="text-2xl font-semibold mb-2">{attachment.filename}</h3>
+                    <p className="text-gray-300 mb-6">
+                      {language === "es"
+                        ? "Vista previa no disponible. El archivo se puede descargar."
+                        : "Preview not available. File can be downloaded."
+                      }
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                      <button
+                        onClick={handleDownload}
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        {language === "es" ? "Descargar" : "Download"}
+                      </button>
+                      <button
+                        onClick={() => window.open(attachment.url, '_blank')}
+                        className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        {language === "es" ? "Abrir en nueva pestaña" : "Open in new tab"}
+                      </button>
+                    </div>
+                  </div>
+                ) : showIframe && (
+                  <div className="w-full h-full relative">
+                    {/* Try browser's native PDF viewer first */}
+                    <iframe
+                      key={`native-${iframeKey}`}
+                      src={`${attachment.url}#toolbar=1&navpanes=1&scrollbar=1&view=FitH&zoom=page-fit`}
+                      className="w-full h-full border-none"
+                      title={attachment.filename}
+                      width="100%"
+                      height="100%"
+                      style={{
+                        minHeight: '100vh',
+                        minWidth: '100vw',
+                        border: '0',
+                        backgroundColor: '#525659'
+                      }}
+                      onLoad={() => {
+                        setLoading(false);
+                        console.log('Native PDF viewer loaded successfully');
+                      }}
+                      onError={() => {
+                        console.log('Native PDF viewer failed, trying Google Docs Viewer...');
+                        // Hide native and show Google viewer
+                        const nativeViewer = document.querySelector(`iframe[key="native-${iframeKey}"]`) as HTMLElement;
+                        const googleViewer = document.querySelector(`iframe[key="google-${iframeKey}"]`) as HTMLElement;
+                        if (nativeViewer && googleViewer) {
+                          nativeViewer.style.display = 'none';
+                          googleViewer.style.display = 'block';
+                        }
+                      }}
+                    />
+
+                    {/* Fallback: Google Docs Viewer */}
+                    <iframe
+                      key={`google-${iframeKey}`}
+                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(attachment.url)}&embedded=true&chrome=false&dov=1&rm=minimal&view=FitH`}
+                      className="w-full h-full border-none absolute top-0 left-0"
+                      title={`${attachment.filename} - Google Viewer`}
+                      width="100%"
+                      height="100%"
+                      style={{
+                        minHeight: '100vh',
+                        minWidth: '100vw',
+                        border: '0',
+                        display: 'none',
+                        backgroundColor: '#404040'
+                      }}
+                      onLoad={() => {
+                        setLoading(false);
+                        console.log('Google Docs viewer loaded as fallback');
+                      }}
+                      onError={() => {
+                        console.log('Google Docs viewer also failed');
+                        setLoading(false);
+                        setError(language === "es" ? "Vista previa no disponible" : "Preview not available");
+                      }}
+                    />
+                  </div>
                 )}
               </div>
             )}
@@ -343,24 +550,85 @@ export function FilePreviewDialog({
             {/* Office Documents Preview */}
             {isOfficeDoc && attachment.url && (
               <div className="w-full h-full">
-                {showIframe && (
-                  <iframe
-                    key={iframeKey}
-                    src={`https://docs.google.com/viewer?url=${encodeURIComponent(attachment.url)}&embedded=true&chrome=false&dov=1&rm=minimal&view=FitH`}
-                    className="w-full h-full border-none"
-                    title={attachment.filename}
-                    width="100%"
-                    height="100%"
-                    frameBorder="0"
-                    scrolling="auto"
-                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                    style={{ minHeight: '100vh', minWidth: '100vw' }}
-                    onLoad={() => setLoading(false)}
-                    onError={() => {
-                      setLoading(false);
-                      setError('Preview not available');
-                    }}
-                  />
+                {error ? (
+                  <div className="text-center text-white h-full flex flex-col justify-center">
+                    <div className="text-8xl mb-6">{getFileIcon(attachment.contentType, attachment.filename)}</div>
+                    <h3 className="text-2xl font-semibold mb-2">{attachment.filename}</h3>
+                    <p className="text-gray-300 mb-6">
+                      {language === "es"
+                        ? "Vista previa no disponible para este documento. Se puede descargar o abrir en nueva pestaña."
+                        : "Preview not available for this document. Can be downloaded or opened in new tab."
+                      }
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                      <button
+                        onClick={handleDownload}
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        {language === "es" ? "Descargar" : "Download"}
+                      </button>
+                      <button
+                        onClick={() => window.open(attachment.url, '_blank')}
+                        className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        {language === "es" ? "Abrir en nueva pestaña" : "Open in new tab"}
+                      </button>
+                    </div>
+                  </div>
+                ) : showIframe && (
+                  <div className="w-full h-full relative">
+                    {/* Try Google Docs Viewer */}
+                    <iframe
+                      key={`google-office-${iframeKey}`}
+                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(attachment.url)}&embedded=true&chrome=false&dov=1&rm=minimal&view=FitH`}
+                      className="w-full h-full border-none"
+                      title={attachment.filename}
+                      width="100%"
+                      height="100%"
+                      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                      style={{ minHeight: '100vh', minWidth: '100vw', border: '0' }}
+                      onLoad={() => {
+                        setLoading(false);
+                        console.log('Google Docs viewer loaded for Office document');
+                      }}
+                      onError={() => {
+                        console.log('Google Docs viewer failed for Office document, trying Microsoft Viewer...');
+                        // Try Microsoft Office Online Viewer as fallback
+                        const msViewer = document.querySelector(`iframe[key="ms-office-${iframeKey}"]`) as HTMLElement;
+                        const googleViewer = document.querySelector(`iframe[key="google-office-${iframeKey}"]`) as HTMLElement;
+                        if (msViewer && googleViewer) {
+                          googleViewer.style.display = 'none';
+                          msViewer.style.display = 'block';
+                        }
+                      }}
+                    />
+
+                    {/* Fallback: Microsoft Office Online Viewer */}
+                    <iframe
+                      key={`ms-office-${iframeKey}`}
+                      src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(attachment.url)}`}
+                      className="w-full h-full border-none absolute top-0 left-0"
+                      title={`${attachment.filename} - Microsoft Viewer`}
+                      width="100%"
+                      height="100%"
+                      style={{ minHeight: '100vh', minWidth: '100vw', border: '0', display: 'none' }}
+                      onLoad={() => {
+                        setLoading(false);
+                        console.log('Microsoft Office viewer loaded as fallback');
+                      }}
+                      onError={() => {
+                        console.log('Both viewers failed for Office document');
+                        setLoading(false);
+                        setError(language === "es" ? "Vista previa no disponible" : "Preview not available");
+                      }}
+                    />
+                  </div>
                 )}
               </div>
             )}
@@ -378,7 +646,7 @@ export function FilePreviewDialog({
                 </p>
                 <div className="flex gap-3 justify-center">
                   <button
-                    onClick={() => window.open(attachment.url, '_blank')}
+                    onClick={handleDownload}
                     className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -405,9 +673,13 @@ export function FilePreviewDialog({
       {/* Instructions */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center text-white/60 text-sm">
         <p>
-          {language === "es" 
-            ? "Presiona ESC para cerrar • Usa las flechas para navegar" 
-            : "Press ESC to close • Use arrow keys to navigate"
+          {language === "es"
+            ? isImage
+              ? "ESC: cerrar • Flechas: navegar • Click: zoom • Scroll: zoom • Arrastrar cuando ampliado"
+              : "Presiona ESC para cerrar • Usa las flechas para navegar"
+            : isImage
+              ? "ESC: close • Arrows: navigate • Click: zoom • Scroll: zoom • Drag when zoomed"
+              : "Press ESC to close • Use arrow keys to navigate"
           }
         </p>
       </div>

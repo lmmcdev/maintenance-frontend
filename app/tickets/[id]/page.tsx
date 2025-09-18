@@ -35,10 +35,18 @@ function TicketDetailPageContent() {
   const [showNotesDialog, setShowNotesDialog] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
+  const [attachmentCount, setAttachmentCount] = useState<number>(0);
 
   const ticketId = params.id as string;
   const apiBase = process.env.NEXT_PUBLIC_API_BASE;
   const { persons, peopleList } = useStaticData();
+
+  // Update attachment count when ticket changes
+  useEffect(() => {
+    if (ticket?.attachments) {
+      setAttachmentCount(ticket.attachments.length);
+    }
+  }, [ticket]);
   const { t: translate, language } = useLanguage();
   const { getMaintenanceToken, tokens } = useApiTokens();
 
@@ -459,9 +467,9 @@ function TicketDetailPageContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                   </svg>
                   <span className="leading-none">{language === "es" ? "Archivos" : "Files"}</span>
-                  {ticket?.attachments && ticket.attachments.length > 0 && (
+                  {attachmentCount > 0 && (
                     <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full ml-1">
-                      {ticket.attachments.length}
+                      {attachmentCount}
                     </span>
                   )}
                 </button>
@@ -763,6 +771,7 @@ function TicketDetailPageContent() {
           onClose={() => setShowAttachments(false)}
           existingAttachments={ticket?.attachments || []}
           token={currentToken || undefined}
+          onAttachmentsChange={setAttachmentCount}
         />
       </div>
     </div>

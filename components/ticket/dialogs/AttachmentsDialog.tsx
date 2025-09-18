@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useLanguage } from "../../context/LanguageContext";
 import { Attachment } from "../../types/ticket";
 import { FilePreviewDialog } from "./FilePreviewDialog";
@@ -12,6 +12,7 @@ type AttachmentsDialogProps = {
   onClose: () => void;
   existingAttachments?: Attachment[]; // Email attachments from ticket data
   token?: string;
+  onAttachmentsChange?: (count: number) => void; // Callback when attachments count changes
 };
 
 export function AttachmentsDialog({
@@ -20,7 +21,8 @@ export function AttachmentsDialog({
   apiBase,
   onClose,
   existingAttachments = [],
-  token
+  token,
+  onAttachmentsChange
 }: AttachmentsDialogProps) {
   const { t, language } = useLanguage();
   const [uploadedAttachments, setUploadedAttachments] = useState<Attachment[]>([]);
@@ -30,9 +32,29 @@ export function AttachmentsDialog({
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [previewAttachment, setPreviewAttachment] = useState<Attachment | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Combine existing email attachments with uploaded ones
-  const allAttachments = [...existingAttachments, ...uploadedAttachments];
+  // Combine existing email attachments with uploaded ones, removing duplicates by ID
+  const allAttachments = useMemo(() => {
+    const combined = [...existingAttachments, ...uploadedAttachments];
+    const seen = new Set();
+    const deduplicated = combined.filter(attachment => {
+      if (seen.has(attachment.id)) {
+        return false;
+      }
+      seen.add(attachment.id);
+      return true;
+    });
+
+    return deduplicated;
+  }, [existingAttachments, uploadedAttachments]);
+
+  // Notify parent when attachment count changes
+  useEffect(() => {
+    if (onAttachmentsChange) {
+      onAttachmentsChange(allAttachments.length);
+    }
+  }, [allAttachments.length, onAttachmentsChange]);
 
   useEffect(() => {
     if (show && ticketId) {
@@ -50,7 +72,8 @@ export function AttachmentsDialog({
       const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/attachments`, { headers });
       if (response.ok) {
         const result = await response.json();
-        setUploadedAttachments(result.data?.attachments || []);
+        const attachments = result.data?.items || [];
+        setUploadedAttachments(attachments);
       }
     } catch (error) {
       console.error("Failed to load attachments:", error);
@@ -137,7 +160,7 @@ export function AttachmentsDialog({
       setUploading(true);
       const formData = new FormData();
       
-      selectedFiles.forEach((file, index) => {
+      selectedFiles.forEach((file) => {
         formData.append(`attachments`, file);
       });
 
@@ -152,9 +175,12 @@ export function AttachmentsDialog({
       });
 
       if (response.ok) {
-        await loadUploadedAttachments();
+        // Clear selected files first to show immediate feedback
         setSelectedFiles([]);
         setPreviewUrls([]);
+
+        // Then reload attachments to update the counter
+        await loadUploadedAttachments();
       } else {
         throw new Error('Upload failed');
       }
@@ -174,6 +200,46 @@ export function AttachmentsDialog({
   const closePreview = () => {
     setShowPreview(false);
     setPreviewAttachment(null);
+  };
+
+  const deleteAttachment = async (attachmentId: string) => {
+    if (!confirm(language === "es" ? "¿Estás seguro de que quieres eliminar este archivo?" : "Are you sure you want to delete this file?")) {
+      return;
+    }
+
+    try {
+      setDeletingId(attachmentId);
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${apiBase}/api/v1/tickets/${ticketId}/attachments/${attachmentId}`, {
+        method: 'DELETE',
+        headers,
+      });
+
+      if (response.ok) {
+        // Update state immediately by removing the deleted attachment
+        setUploadedAttachments(prev => prev.filter(att => att.id !== attachmentId));
+
+        // Close preview if the deleted file was being previewed
+        if (previewAttachment?.id === attachmentId) {
+          closePreview();
+        }
+
+        // Optionally reload to ensure consistency with server
+        loadUploadedAttachments();
+      } else {
+        throw new Error('Delete failed');
+      }
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert(language === "es" ? "Error al eliminar archivo" : "Failed to delete file");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const navigatePreview = (direction: 'prev' | 'next') => {
@@ -218,57 +284,9 @@ export function AttachmentsDialog({
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-          {/* Email Attachments Section */}
-          {existingAttachments.length > 0 && (
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                📧 {language === "es" ? "Archivos del Email" : "Email Attachments"}
-                <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                  {existingAttachments.length}
-                </span>
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {existingAttachments.map((attachment, index) => (
-                  <div
-                    key={`email-${attachment.id}`}
-                    className="border rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => openFilePreview(attachment)}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="text-3xl flex-shrink-0">
-                        {getFileIcon(attachment.contentType)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="font-medium text-gray-900 truncate">
-                          {attachment.filename}
-                        </h4>
-                        <p className="text-sm text-gray-500">
-                          {getFileTypeLabel(attachment.contentType)}
-                        </p>
-                        {attachment.size && (
-                          <p className="text-xs text-gray-400">
-                            {formatFileSize(attachment.size)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    {attachment.contentType.startsWith('image/') && attachment.url && (
-                      <div className="mt-3">
-                        <img
-                          src={attachment.url}
-                          alt={attachment.filename}
-                          className="w-full h-32 object-cover rounded-lg"
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Upload Section */}
-          <div className="border-t pt-8">
+          <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
               📎 {language === "es" ? "Subir Nuevos Archivos" : "Upload New Files"}
             </h3>
@@ -353,23 +371,44 @@ export function AttachmentsDialog({
             )}
           </div>
 
-          {/* Uploaded Attachments */}
-          {uploadedAttachments.length > 0 && (
+          {/* All Attachments */}
+          {allAttachments.length > 0 && (
             <div className="border-t pt-8 mt-8">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 ☁️ {language === "es" ? "Archivos Subidos" : "Uploaded Files"}
                 <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                  {uploadedAttachments.length}
+                  {uploading ? "..." : allAttachments.length}
                 </span>
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {uploadedAttachments.map((attachment, index) => (
+                {allAttachments.map((attachment) => (
                   <div
-                    key={`uploaded-${attachment.id}`}
-                    className="border rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => openFilePreview(attachment)}
+                    key={`attachment-${attachment.id}`}
+                    className="border rounded-xl p-4 hover:shadow-md transition-shadow relative group"
                   >
-                    <div className="flex items-start gap-3">
+                    {/* Delete button - only show for uploaded attachments, not email attachments */}
+                    {uploadedAttachments.some(uploaded => uploaded.id === attachment.id) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteAttachment(attachment.id);
+                        }}
+                        disabled={deletingId === attachment.id}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={language === "es" ? "Eliminar archivo" : "Delete file"}
+                      >
+                        {deletingId === attachment.id ? (
+                          <div className="animate-spin w-3 h-3 border border-white border-t-transparent rounded-full"></div>
+                        ) : (
+                          "×"
+                        )}
+                      </button>
+                    )}
+
+                    <div
+                      className="flex items-start gap-3 cursor-pointer"
+                      onClick={() => openFilePreview(attachment)}
+                    >
                       <div className="text-3xl flex-shrink-0">
                         {getFileIcon(attachment.contentType)}
                       </div>
@@ -416,6 +455,9 @@ export function AttachmentsDialog({
         onClose={closePreview}
         onNavigate={allAttachments.length > 1 ? navigatePreview : undefined}
         showNavigation={allAttachments.length > 1}
+        ticketId={ticketId}
+        apiBase={apiBase}
+        token={token}
       />
     </div>
   );
