@@ -108,27 +108,52 @@ export function LocationSelector({
       return;
     }
 
+    // If still loading locations, show loading message
+    if (isLoading && apiLocations.length === 0) {
+      setSelectedLabel(language === "es" ? "Cargando ubicaciones..." : "Loading locations...");
+      return;
+    }
+
     if (value.length === 1) {
       const location = value[0];
-      // Try to find in API locations first, then use the ID
+      // Try to find in API locations first
       const locationData = apiLocations.find(loc => loc.id === location.locationId);
-      const displayName = locationData?.name || locationData?.code || location.locationId || "";
-      setSelectedLabel(displayName);
+      if (locationData) {
+        const displayName = locationData.name || locationData.code || location.locationId || "";
+        setSelectedLabel(displayName);
+      } else {
+        // If not found and still loading, show loading
+        if (isLoading) {
+          setSelectedLabel(language === "es" ? "Cargando ubicación..." : "Loading location...");
+        } else {
+          // If not found and not loading, show ID as fallback
+          setSelectedLabel(location.locationId || "");
+        }
+      }
     } else {
-      // Show names of selected locations, truncate if too long
+      // Multiple locations
       const locationNames = value.map(location => {
         const locationData = apiLocations.find(loc => loc.id === location.locationId);
-        return locationData?.name || locationData?.code || location.locationId || "";
+        if (locationData) {
+          return locationData.name || locationData.code || location.locationId || "";
+        } else {
+          return isLoading ? "..." : (location.locationId || "");
+        }
       });
 
-      const joinedNames = locationNames.join(", ");
-      if (joinedNames.length > 50) {
-        setSelectedLabel(`${value.length} ${language === "es" ? "ubicaciones seleccionadas" : "locations selected"}`);
+      // If any locations are still loading (showing "..."), show loading message
+      if (locationNames.some(name => name === "...")) {
+        setSelectedLabel(language === "es" ? "Cargando ubicaciones..." : "Loading locations...");
       } else {
-        setSelectedLabel(joinedNames);
+        const joinedNames = locationNames.join(", ");
+        if (joinedNames.length > 50) {
+          setSelectedLabel(`${value.length} ${language === "es" ? "ubicaciones seleccionadas" : "locations selected"}`);
+        } else {
+          setSelectedLabel(joinedNames);
+        }
       }
     }
-  }, [value, language, apiLocations]); // Re-run when language or apiLocations change
+  }, [value, language, apiLocations, isLoading]); // Re-run when language, apiLocations, or loading state change
 
   const filteredOptions = (() => {
     // First filter by search term
@@ -271,7 +296,15 @@ export function LocationSelector({
           <div className="mt-2 flex flex-wrap gap-1">
             {value.map((location, index) => {
               const locationData = apiLocations.find(loc => loc.id === location.locationId);
-              const displayName = locationData?.name || locationData?.code || location.locationId;
+              let displayName;
+
+              if (locationData) {
+                displayName = locationData.name || locationData.code || location.locationId;
+              } else if (isLoading) {
+                displayName = language === "es" ? "Cargando..." : "Loading...";
+              } else {
+                displayName = location.locationId;
+              }
 
               return (
                 <div
