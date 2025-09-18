@@ -276,7 +276,26 @@ export async function listCategories(
   const items: any[] = json?.data?.items ?? json?.items ?? [];
 
   const active = (items || []).filter((c: any) => c?.isActive !== false);
-  return active.map((c: any) => {
+
+  // Sort categories by order field, putting "Otros" at the end
+  const sorted = active.sort((a: any, b: any) => {
+    const aOrder = a?.order ?? 999;
+    const bOrder = b?.order ?? 999;
+
+    // Special handling for "Otros" - always put it last
+    const aIsOthers = (a?.name || a?.id || '').toLowerCase().includes('other') ||
+                      (a?.displayName || '').toLowerCase().includes('otros');
+    const bIsOthers = (b?.name || b?.id || '').toLowerCase().includes('other') ||
+                      (b?.displayName || '').toLowerCase().includes('otros');
+
+    if (aIsOthers && !bIsOthers) return 1;
+    if (!aIsOthers && bIsOthers) return -1;
+
+    // Normal sorting by order field
+    return aOrder - bOrder;
+  });
+
+  return sorted.map((c: any) => {
     const name = c?.id ?? c?.name ?? "";
     const displayName = c?.displayName ?? name;
     const subcats = (c?.subcategories ?? [])
