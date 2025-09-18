@@ -43,9 +43,25 @@ export function CategorySelector({
     return subcats;
   }, [categories]);
 
-  const filteredCategories = allSubcategories.filter((category) =>
-    category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCategories = allSubcategories
+    .filter((category) =>
+      category.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      // Check if categories contain "otros" or "others"
+      const aIsOthers = a.toLowerCase().includes('otros') || a.toLowerCase().includes('others');
+      const bIsOthers = b.toLowerCase().includes('otros') || b.toLowerCase().includes('others');
+
+      // If one is "Otros" and the other isn't, put "Otros" at the end
+      if (aIsOthers && !bIsOthers) return 1;
+      if (!aIsOthers && bIsOthers) return -1;
+
+      // For all other cases, sort alphabetically
+      return a.localeCompare(b, undefined, {
+        numeric: true,
+        sensitivity: 'base'
+      });
+    });
 
   // Initialize selected category from ticket
   useEffect(() => {

@@ -96,6 +96,22 @@ export function LocationSelector({
       });
     });
 
+    // Sort alphabetically, but keep "Otros" at the end
+    options.sort((a, b) => {
+      const aIsOthers = a.label.toLowerCase().includes('otros') || a.label.toLowerCase().includes('others');
+      const bIsOthers = b.label.toLowerCase().includes('otros') || b.label.toLowerCase().includes('others');
+
+      // If one is "Otros" and the other isn't, put "Otros" at the end
+      if (aIsOthers && !bIsOthers) return 1;
+      if (!aIsOthers && bIsOthers) return -1;
+
+      // For all other cases, sort alphabetically
+      return a.label.localeCompare(b.label, undefined, {
+        numeric: true,
+        sensitivity: 'base'
+      });
+    });
+
     return options;
   };
 
