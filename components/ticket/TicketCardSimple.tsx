@@ -263,16 +263,22 @@ export function TicketCard({ t, apiBase, token, onChanged }: TicketCardProps) {
 
       {/* Quick Status Indicators */}
       <div className="flex flex-wrap gap-2 text-xs mb-4 sm:mb-5">
-        {t.category && (
-          <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded-md">
-            <span className="font-medium">Category:</span>
-            <span className="ml-1">{t.category}</span>
-          </span>
-        )}
         {t.priority && (
           <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded-md">
             <span className="font-medium">Priority:</span>
             <span className="ml-1 capitalize">{t.priority}</span>
+          </span>
+        )}
+        {(t.subcategory || t.category) && (
+          <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded-md">
+            <span className="font-medium">Category:</span>
+            <span className="ml-1">
+              {typeof t.subcategory === "object" && t.subcategory?.displayName
+                ? t.subcategory.displayName
+                : typeof t.subcategory === "string"
+                ? t.subcategory
+                : t.category}
+            </span>
           </span>
         )}
       </div>

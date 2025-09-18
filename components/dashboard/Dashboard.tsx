@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useMemo } from "react";
-import { useTickets } from "../hooks/useTickets";
+import React from "react";
+import { useDashboardData } from "../hooks/useDashboardData";
 import { StickyDashboardHeader } from "../layout/StickyHeaders";
 import { StatBoxes } from "./StatBoxes";
 import { PriorityChart } from "./PriorityChart";
@@ -10,22 +10,7 @@ import { AssigneeChart } from "./AssigneeChart";
 import { StaticDataProvider } from "../context/StaticDataContext";
 
 export function TicketsDashboard({ apiBase = "/_api", token }: { apiBase?: string; token?: string }) {
-  const { items: newItems, loading: l1 } = useTickets(apiBase, "NEW", token);
-  const { items: progItems, loading: l2 } = useTickets(apiBase, "OPEN", token);
-  const { items: doneItems, loading: l3 } = useTickets(apiBase, "DONE", token);
-  const loading = l1 || l2 || l3;
-
-  const counts = useMemo(
-    () => ({ NEW: newItems.length, OPEN: progItems.length, DONE: doneItems.length }),
-    [newItems.length, progItems.length, doneItems.length]
-  );
-
-  const priorities = useMemo(() => {
-    const all = [...newItems, ...progItems, ...doneItems];
-    const acc = { LOW: 0, MEDIUM: 0, HIGH: 0, URGENT: 0 } as Record<string, number>;
-    all.forEach((t) => (acc[t.priority] = (acc[t.priority] || 0) + 1));
-    return acc;
-  }, [newItems, progItems, doneItems]);
+  const { allTickets, counts, priorities, loading } = useDashboardData(apiBase, token);
 
   return (
     <StaticDataProvider apiBase={apiBase} token={token}>
@@ -40,10 +25,10 @@ export function TicketsDashboard({ apiBase = "/_api", token }: { apiBase?: strin
       ) : (
         <div className="p-2 sm:p-4 md:p-6 lg:p-8 space-y-3 sm:space-y-5 md:space-y-6 max-w-screen-xl mx-auto">
           <StatBoxes counts={counts} />
-          <CategoryChart tickets={[...newItems, ...progItems, ...doneItems]} />
+          <CategoryChart tickets={allTickets} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-5 md:gap-6">
             <PriorityChart priorities={priorities} />
-            <AssigneeChart tickets={[...newItems, ...progItems, ...doneItems]} />
+            <AssigneeChart tickets={allTickets} />
           </div>
         </div>
       )}
