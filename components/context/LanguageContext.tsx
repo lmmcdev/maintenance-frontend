@@ -131,7 +131,7 @@ const translations: Translations = {
     // Button labels
     "button.done": "Done",
     "button.cancel": "Cancel",
-    "button.details": "Details", 
+    "button.details": "Details",
     "button.notes": "Notes",
 
     // Notes
@@ -149,7 +149,7 @@ const translations: Translations = {
     "more.options": "More options",
     "view.cancelled.tickets": "View cancelled tickets",
     close: "Close",
-    
+
     // Details
     details: "Details",
     "ticket.details": "Ticket Details",
@@ -198,7 +198,7 @@ const translations: Translations = {
     // Category
     category: "Categoría:",
     "category.select": "Seleccionar categoría...",
-    "category.other": "Otro",
+    "category.other": "Otros",
 
     // Dialogs
     // "cancel.ticket": "Cancelar Ticket",
@@ -278,7 +278,7 @@ const translations: Translations = {
 
     // Button labels
     "button.done": "Terminado",
-    "button.cancel": "Cancelar", 
+    "button.cancel": "Cancelar",
     "button.details": "Detalles",
     "button.notes": "Notas",
 
@@ -297,7 +297,7 @@ const translations: Translations = {
     "more.options": "Más opciones",
     "view.cancelled.tickets": "Ver tickets cancelados",
     close: "Cerrar",
-    
+
     // Details
     details: "Detalles",
     "ticket.details": "Detalles del Ticket",
@@ -331,7 +331,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         return;
       }
     }
-    
+
     // Fallback to localStorage
     const savedLang = localStorage.getItem("language") as Language;
     if (savedLang && (savedLang === "en" || savedLang === "es")) {
