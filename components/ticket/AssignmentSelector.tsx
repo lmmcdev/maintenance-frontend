@@ -143,7 +143,7 @@ export function AssignmentSelector({
 
         {/* Dropdown */}
         {isOpen && !disabled && (
-          <div className="absolute z-[60] w-full mt-1 bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-xl overflow-visible">
+          <div className="absolute z-[60] w-full bottom-full mb-1 bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-xl overflow-visible">
             {/* Search box */}
             <div className="p-2 sm:p-3 border-b border-gray-100">
               <input
