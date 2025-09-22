@@ -2,6 +2,21 @@ import type { Config } from "tailwindcss";
 export default {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
   theme: {
+    fontSize: {
+      'xs': ['0.875rem', { lineHeight: '1.25rem' }],    // 14px (was 12px)
+      'sm': ['1rem', { lineHeight: '1.5rem' }],         // 16px (was 14px)
+      'base': ['1.125rem', { lineHeight: '1.75rem' }],  // 18px (was 16px)
+      'lg': ['1.25rem', { lineHeight: '1.875rem' }],    // 20px (was 18px)
+      'xl': ['1.375rem', { lineHeight: '2rem' }],       // 22px (was 20px)
+      '2xl': ['1.5rem', { lineHeight: '2.25rem' }],     // 24px (was 24px)
+      '3xl': ['1.875rem', { lineHeight: '2.5rem' }],    // 30px (was 30px)
+      '4xl': ['2.25rem', { lineHeight: '3rem' }],       // 36px (was 36px)
+      '5xl': ['3rem', { lineHeight: '3.5rem' }],        // 48px (was 48px)
+      '6xl': ['3.75rem', { lineHeight: '4rem' }],       // 60px (was 60px)
+      '7xl': ['4.5rem', { lineHeight: '4.5rem' }],      // 72px (was 72px)
+      '8xl': ['6rem', { lineHeight: '6rem' }],          // 96px (was 96px)
+      '9xl': ['8rem', { lineHeight: '8rem' }],          // 128px (was 128px)
+    },
     screens: {
       'xs': '475px',
       'sm': '640px',
