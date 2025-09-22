@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Ticket, TicketStatus, ListResponse } from "../types/ticket";
 
-export function useDashboardData(apiBase: string, token?: string) {
+export function useDashboardData(apiBase: string, token?: string, createdFrom?: Date, createdTo?: Date) {
   const [allTickets, setAllTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +18,16 @@ export function useDashboardData(apiBase: string, token?: string) {
         params.append('limit', '100'); // Get more tickets for dashboard
         params.append('sortBy', 'createdAt');
         params.append('sortDir', 'desc');
+
+        // Add date filters if provided
+        if (createdFrom) {
+          const fromDate = createdFrom.toISOString().split('T')[0];
+          params.append('createdFrom', fromDate);
+        }
+        if (createdTo) {
+          const toDate = createdTo.toISOString().split('T')[0];
+          params.append('createdTo', toDate);
+        }
 
         const url = `${apiBase}/api/v1/tickets?${params.toString()}`;
         console.log('Dashboard API URL:', url);
@@ -38,7 +48,7 @@ export function useDashboardData(apiBase: string, token?: string) {
         setLoading(false);
       }
     };
-  }, [apiBase, token]);
+  }, [apiBase, token, createdFrom, createdTo]);
 
   useEffect(() => {
     reload();
