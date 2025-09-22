@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { StickyDashboardHeader } from "../layout/StickyHeaders";
 import { StatBoxes } from "./StatBoxes";
@@ -8,9 +8,18 @@ import { PriorityChart } from "./PriorityChart";
 import { CategoryChart } from "./CategoryChart";
 import { AssigneeChart } from "./AssigneeChart";
 import { StaticDataProvider } from "../context/StaticDataContext";
+import { DateFilters } from "../ticket/DateFilters";
 
 export function TicketsDashboard({ apiBase = "/_api", token }: { apiBase?: string; token?: string }) {
-  const { allTickets, counts, priorities, loading } = useDashboardData(apiBase, token);
+  const [createdFrom, setCreatedFrom] = useState<Date | undefined>();
+  const [createdTo, setCreatedTo] = useState<Date | undefined>();
+
+  const { allTickets, counts, priorities, loading } = useDashboardData(apiBase, token, createdFrom, createdTo);
+
+  const handleClearFilters = () => {
+    setCreatedFrom(undefined);
+    setCreatedTo(undefined);
+  };
 
   return (
     <StaticDataProvider apiBase={apiBase} token={token}>
@@ -24,6 +33,13 @@ export function TicketsDashboard({ apiBase = "/_api", token }: { apiBase?: strin
         </div>
       ) : (
         <div className="p-2 sm:p-4 md:p-6 lg:p-8 space-y-3 sm:space-y-5 md:space-y-6 max-w-screen-xl mx-auto">
+          <DateFilters
+            createdFrom={createdFrom}
+            createdTo={createdTo}
+            onDateFromChange={setCreatedFrom}
+            onDateToChange={setCreatedTo}
+            onClear={handleClearFilters}
+          />
           <StatBoxes counts={counts} />
           <CategoryChart tickets={allTickets} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-5 md:gap-6">
