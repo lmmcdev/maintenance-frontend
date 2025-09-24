@@ -468,7 +468,7 @@ function TicketDetailPageContent() {
                   </svg>
                   <span className="leading-none">{language === "es" ? "Archivos" : "Files"}</span>
                   {attachmentCount > 0 && (
-                    <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full ml-1">
+                    <span className="bg-blue-100 text-blue-700 text-xs px-1.5 rounded-full ml-1 leading-none inline-flex items-center justify-center min-w-[1.25rem] h-4">
                       {attachmentCount}
                     </span>
                   )}
@@ -523,7 +523,30 @@ function TicketDetailPageContent() {
             {/* Description */}
             <div className="mb-4 sm:mb-6">
               <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-2">{translate("description")}:</h3>
-              <p className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-wrap">{ticket.description}</p>
+              <div className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                {(() => {
+                  // Convert URLs to clickable links
+                  const urlRegex = /(https?:\/\/[^\s\]]+)/gi;
+                  const parts = ticket.description.split(urlRegex);
+
+                  return parts.map((part, index) => {
+                    if (urlRegex.test(part)) {
+                      return (
+                        <a
+                          key={index}
+                          href={part}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline break-all"
+                        >
+                          {part.length > 50 ? `${part.substring(0, 50)}...` : part}
+                        </a>
+                      );
+                    }
+                    return part;
+                  });
+                })()}
+              </div>
             </div>
 
             {/* Created Date, Source & Location */}
@@ -837,6 +860,7 @@ function TicketDetailPageContent() {
           existingAttachments={ticket?.attachments || []}
           token={currentToken || undefined}
           onAttachmentsChange={setAttachmentCount}
+          onTicketUpdate={reloadTicket}
         />
       </div>
     </div>

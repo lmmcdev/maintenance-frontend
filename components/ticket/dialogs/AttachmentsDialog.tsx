@@ -13,6 +13,7 @@ type AttachmentsDialogProps = {
   existingAttachments?: Attachment[]; // Email attachments from ticket data
   token?: string;
   onAttachmentsChange?: (count: number) => void; // Callback when attachments count changes
+  onTicketUpdate?: () => void; // Callback to refresh ticket data
 };
 
 export function AttachmentsDialog({
@@ -22,7 +23,8 @@ export function AttachmentsDialog({
   onClose,
   existingAttachments = [],
   token,
-  onAttachmentsChange
+  onAttachmentsChange,
+  onTicketUpdate
 }: AttachmentsDialogProps) {
   const { t, language } = useLanguage();
   const [uploadedAttachments, setUploadedAttachments] = useState<Attachment[]>([]);
@@ -181,6 +183,13 @@ export function AttachmentsDialog({
 
         // Then reload attachments to update the counter
         await loadUploadedAttachments();
+
+        // Notify parent to refresh ticket data
+        if (onTicketUpdate) {
+          onTicketUpdate();
+        }
+
+        console.log('✅ Files uploaded and ticket updated');
       } else {
         throw new Error('Upload failed');
       }
@@ -228,6 +237,13 @@ export function AttachmentsDialog({
         if (previewAttachment?.id === attachmentId) {
           closePreview();
         }
+
+        // Notify parent to refresh ticket data
+        if (onTicketUpdate) {
+          onTicketUpdate();
+        }
+
+        console.log('✅ File deleted and ticket updated');
       } else {
         throw new Error('Delete failed');
       }

@@ -225,7 +225,7 @@ export function TicketCard({ t, apiBase, token, onChanged }: TicketCardProps) {
       </header>
 
       {/* Description */}
-      <div className="text-xs sm:text-sm md:text-base text-gray-700 mb-3 sm:mb-4 leading-relaxed">
+      <div className="text-xs sm:text-sm md:text-base text-gray-700 mb-3 sm:mb-4 leading-relaxed break-words overflow-wrap-anywhere">
         {truncate(t.description, 160)}
       </div>
 
