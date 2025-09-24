@@ -228,9 +228,6 @@ export function AttachmentsDialog({
         if (previewAttachment?.id === attachmentId) {
           closePreview();
         }
-
-        // Optionally reload to ensure consistency with server
-        loadUploadedAttachments();
       } else {
         throw new Error('Delete failed');
       }
