@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useLanguage } from "../context/LanguageContext";
+import { Person } from "../types/ticket";
 
 type AssignmentSelectorProps = {
   selectedNames: string[];
@@ -10,7 +11,7 @@ type AssignmentSelectorProps = {
   disabled: boolean;
   canAssign: boolean;
   isReassignment?: boolean;
-  peopleList: string[];
+  persons: Person[];
 };
 
 export function AssignmentSelector({
@@ -20,17 +21,18 @@ export function AssignmentSelector({
   disabled,
   canAssign,
   isReassignment,
-  peopleList
+  persons
 }: AssignmentSelectorProps) {
   const { t: translate, language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const filteredPeople = peopleList.filter(person =>
-    person.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    !selectedNames.includes(person) // Filter out already selected people
-  );
+  const filteredPeople = persons.filter(person => {
+    const fullName = `${person.firstName} ${person.lastName}`;
+    return fullName.toLowerCase().includes(searchTerm.toLowerCase()) &&
+           !selectedNames.includes(fullName); // Filter out already selected people
+  });
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -47,14 +49,15 @@ export function AssignmentSelector({
     };
   }, [isOpen]);
 
-  const handlePersonSelect = (person: string) => {
+  const handlePersonSelect = (person: Person) => {
     if (!canAssign) {
       alert("Complete category and priority before assigning.");
       return;
     }
 
+    const fullName = `${person.firstName} ${person.lastName}`;
     // Add person to selection and trigger assignment immediately
-    const newSelected = [...selectedNames, person];
+    const newSelected = [...selectedNames, fullName];
     onChange(newSelected);
 
     // Trigger assignment process immediately
@@ -160,12 +163,32 @@ export function AssignmentSelector({
             <div className="max-h-60 sm:max-h-72 overflow-y-auto">
               {filteredPeople.map((person) => (
                 <button
-                  key={person}
+                  key={person.id}
                   onClick={() => handlePersonSelect(person)}
                   className="w-full flex items-center px-2 sm:px-3 py-2 hover:bg-gray-50 cursor-pointer transition-colors duration-150 text-left"
                 >
+                  <div className="w-8 h-8 rounded-full overflow-hidden mr-3 flex-shrink-0 bg-gray-200">
+                    {person.profilePhoto?.url ? (
+                      <img
+                        src={person.profilePhoto.url}
+                        alt={`${person.firstName} ${person.lastName}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Hide broken image and show placeholder
+                          e.currentTarget.style.display = 'none';
+                          const placeholder = e.currentTarget.nextElementSibling as HTMLDivElement;
+                          if (placeholder) placeholder.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ${person.profilePhoto?.url ? 'hidden' : 'flex'}`}>
+                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  </div>
                   <span className="text-xs sm:text-sm text-gray-700 flex-1">
-                    {person}
+                    {person.firstName} {person.lastName}
                   </span>
                 </button>
               ))}

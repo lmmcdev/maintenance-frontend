@@ -721,7 +721,7 @@ function TicketDetailPageContent() {
                 disabled={!!busy}
                 canAssign={canAssign}
                 isReassignment={ticket.status === "OPEN" && !!(ticket.assignee || ticket.assigneeId)}
-                peopleList={peopleList}
+                persons={persons}
               />
 
               {!canAssign && (

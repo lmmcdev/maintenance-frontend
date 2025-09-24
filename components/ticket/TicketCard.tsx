@@ -334,7 +334,7 @@ export function TicketCard({ t, apiBase, token, onChanged }: TicketCardProps) {
           disabled={!!busy}
           canAssign={canAssign}
           isReassignment={t.status === "OPEN" && !!(t.assignee || t.assigneeId)}
-          peopleList={peopleList}
+          persons={persons}
         />
 
         {!canAssign && (

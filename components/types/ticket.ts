@@ -76,6 +76,13 @@ export type Person = {
   firstName: string;
   lastName: string;
   email?: string;
+  profilePhoto?: {
+    id: string;
+    filename: string;
+    contentType: string;
+    size: number;
+    url: string;
+  };
 };
 
 export type ListResponse = {
