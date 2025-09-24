@@ -620,16 +620,81 @@ function TicketDetailPageContent() {
                     <div className="w-1.5 sm:w-2 h-4 sm:h-6 bg-green-500 rounded-full"></div>
                     <h3 className="font-bold text-green-700 text-base sm:text-lg">{translate("assigned.to")}</h3>
                   </div>
-                  <div className="text-sm sm:text-base font-bold text-green-800">
-                    {ticket.assignee?.firstName
-                      ? `${ticket.assignee.firstName} ${ticket.assignee.lastName}`
-                      : ticket.assigneeId
-                      ? ticket.assigneeId
-                      : (ticket as any).assignees && (ticket as any).assignees.length > 0
-                      ? (ticket as any).assignees
-                          .map((a: any) => `${a.firstName} ${a.lastName}`)
-                          .join(", ")
-                      : (ticket as any).assigneeIds.join(", ")}
+
+                  {/* Assignees with profile photos */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* Single assignee */}
+                    {ticket.assignee?.firstName && (
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
+                          {ticket.assignee?.profilePhoto?.url ? (
+                            <img
+                              src={ticket.assignee.profilePhoto.url}
+                              alt={`${ticket.assignee.firstName} ${ticket.assignee.lastName}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const placeholder = e.currentTarget.nextElementSibling as HTMLDivElement;
+                                if (placeholder) placeholder.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div className={`w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ${ticket.assignee?.profilePhoto?.url ? 'hidden' : 'flex'}`}>
+                            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <span className="text-sm sm:text-base font-bold text-green-800">
+                          {ticket.assignee.firstName} {ticket.assignee.lastName}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Multiple assignees */}
+                    {(ticket as any).assignees && (ticket as any).assignees.length > 0 && (ticket as any).assignees.map((assignee: any, index: number) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
+                          {assignee?.profilePhoto?.url ? (
+                            <img
+                              src={assignee.profilePhoto.url}
+                              alt={`${assignee.firstName} ${assignee.lastName}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const placeholder = e.currentTarget.nextElementSibling as HTMLDivElement;
+                                if (placeholder) placeholder.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div className={`w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ${assignee?.profilePhoto?.url ? 'hidden' : 'flex'}`}>
+                            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <span className="text-sm sm:text-base font-bold text-green-800">
+                          {assignee.firstName} {assignee.lastName}
+                        </span>
+                        {index < (ticket as any).assignees.length - 1 && <span className="text-green-600">,</span>}
+                      </div>
+                    ))}
+
+                    {/* Fallback for assigneeId or assigneeIds */}
+                    {!ticket.assignee?.firstName && !(ticket as any).assignees?.length && (
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
+                          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <span className="text-sm sm:text-base font-bold text-green-800">
+                          {ticket.assigneeId || ((ticket as any).assigneeIds && (ticket as any).assigneeIds.join(", "))}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

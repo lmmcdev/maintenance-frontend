@@ -31,6 +31,7 @@ const translations: Translations = {
     "priority.medium": "MEDIUM",
     "priority.low": "LOW",
     priority: "Priority:",
+    "priority.label": "Priority",
 
     // Assignment
     assign: "Assign",
@@ -50,6 +51,7 @@ const translations: Translations = {
 
     // Category
     category: "Category:",
+    "category.label": "Category",
     "category.select": "Select category...",
     "category.other": "Other",
 
@@ -90,6 +92,7 @@ const translations: Translations = {
     "no.tickets.moment": "There are no {status} tickets at the moment.",
     created: "Created:",
     "assigned.to": "Assigned to:",
+    "assigned.to.label": "Assigned to",
     audio: "Audio",
     "no.audio.file": "No audio file available",
     "audio.invalid": "Audio file unavailable",
@@ -178,6 +181,7 @@ const translations: Translations = {
     "priority.medium": "MEDIO",
     "priority.low": "BAJO",
     priority: "Prioridad:",
+    "priority.label": "Prioridad",
 
     // Assignment
     assign: "Asignar",
@@ -197,6 +201,7 @@ const translations: Translations = {
 
     // Category
     category: "Categoría:",
+    "category.label": "Categoría",
     "category.select": "Seleccionar categoría...",
     "category.other": "Otros",
 
@@ -237,6 +242,7 @@ const translations: Translations = {
     "no.tickets.moment": "No hay tickets {status} en este momento.",
     created: "Creado:",
     "assigned.to": "Asignado a:",
+    "assigned.to.label": "Asignado a",
     audio: "Audio",
     "no.audio.file": "No hay archivo de audio disponible",
     "audio.invalid": "Archivo de audio no disponible",

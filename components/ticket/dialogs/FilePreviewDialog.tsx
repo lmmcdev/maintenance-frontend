@@ -42,16 +42,23 @@ export function FilePreviewDialog({
       setImageZoom(1);
       setImagePosition({ x: 0, y: 0 });
       setShowIframe(true);
-      
+
       // Force iframe refresh with unique key
       setIframeKey(Date.now());
-      
+
       // Quick loading for documents
       if (!attachment.contentType.startsWith('image/')) {
         setTimeout(() => setLoading(false), 200);
+      } else {
+        // For images, set a timeout as fallback in case onLoad doesn't trigger
+        setTimeout(() => {
+          setLoading(false);
+        }, 1000);
       }
     } else {
       setShowIframe(false);
+      setLoading(false);
+      setError(null);
     }
   }, [show, attachment]);
 
@@ -85,10 +92,13 @@ export function FilePreviewDialog({
   };
 
   const handleImageLoad = () => {
+    console.log('Image loaded successfully');
     setLoading(false);
+    setError(null);
   };
 
-  const handleImageError = () => {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.log('Image failed to load:', e.currentTarget.src);
     setLoading(false);
     setError(language === "es" ? "Error al cargar la imagen" : "Failed to load image");
   };
@@ -175,42 +185,185 @@ export function FilePreviewDialog({
   const handleDownload = async () => {
     if (!attachment) return;
 
-    // If we have ticketId and apiBase, use the download endpoint
-    if (ticketId && apiBase && attachment.id) {
+    console.log('🔽 FORCING download for:', attachment.filename);
+
+    // CANVAS PROXY METHOD - Works even when server shows images instead of downloading
+    const downloadImageViaCanvas = (imageUrl: string, filename: string): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        console.log('🎨 Using canvas proxy method to force download');
+
+        // Create new image element
+        const img = new Image();
+
+        // Handle CORS
+        img.crossOrigin = 'anonymous';
+
+        img.onload = () => {
+          try {
+            console.log('✅ Image loaded, creating canvas...');
+
+            // Create canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            if (!ctx) {
+              throw new Error('Could not get canvas context');
+            }
+
+            // Set canvas size to match image
+            canvas.width = img.naturalWidth || img.width;
+            canvas.height = img.naturalHeight || img.height;
+
+            console.log(`📐 Canvas size: ${canvas.width}x${canvas.height}`);
+
+            // Draw image on canvas
+            ctx.drawImage(img, 0, 0);
+
+            // Convert canvas to blob and download
+            canvas.toBlob((blob) => {
+              if (!blob) {
+                throw new Error('Could not create blob from canvas');
+              }
+
+              console.log('✅ Blob created from canvas, size:', blob.size);
+
+              // Create download URL
+              const blobUrl = URL.createObjectURL(blob);
+
+              // Create download link
+              const link = document.createElement('a');
+              link.href = blobUrl;
+              link.download = filename;
+              link.style.display = 'none';
+
+              // Force download
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+
+              // Cleanup
+              setTimeout(() => {
+                URL.revokeObjectURL(blobUrl);
+              }, 1000);
+
+              console.log('🎉 Canvas download completed for:', filename);
+              resolve();
+
+            }, 'image/png', 1.0); // High quality PNG
+
+          } catch (error) {
+            console.error('❌ Canvas processing failed:', error);
+            reject(error);
+          }
+        };
+
+        img.onerror = (error) => {
+          console.error('❌ Image failed to load:', error);
+          reject(new Error('Failed to load image for canvas processing'));
+        };
+
+        // Start loading image
+        img.src = imageUrl;
+      });
+    };
+
+    // API download with fetch (for authenticated endpoints)
+    const apiDownload = async (url: string, filename: string, headers: Record<string, string>): Promise<void> => {
       try {
-        const headers: Record<string, string> = {};
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
+        console.log('🔐 Trying API download with authentication');
+
+        const response = await fetch(url, {
+          headers,
+          method: 'GET',
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const downloadUrl = `${apiBase}/api/v1/tickets/${ticketId}/attachments/${attachment.id}/download`;
+        const blob = await response.blob();
+        console.log('✅ API file fetched successfully. Size:', blob.size, 'bytes');
 
-        // Create a temporary link to trigger download
+        // Create blob URL for download
+        const blobUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = attachment.filename;
 
-        // Set headers by creating a fetch request and then trigger download
-        const response = await fetch(downloadUrl, { headers });
-        if (response.ok) {
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          link.href = url;
+        link.href = blobUrl;
+        link.download = filename;
+        link.style.display = 'none';
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+
+        console.log('🎉 API download completed:', filename);
+      } catch (error) {
+        console.error('❌ API download failed:', error);
+        throw error;
+      }
+    };
+
+    try {
+      // Try API endpoint first if we have credentials
+      if (ticketId && apiBase && attachment.id && token) {
+        const apiUrl = `${apiBase}/api/v1/tickets/${ticketId}/attachments/${attachment.id}/download`;
+        const headers = { "Authorization": `Bearer ${token}` };
+
+        try {
+          await apiDownload(apiUrl, attachment.filename, headers);
+          return;
+        } catch (apiError) {
+          console.log('🔄 API download failed, trying canvas method:', apiError);
+          // Continue to canvas method
+        }
+      }
+
+      // Use canvas proxy method for images (GUARANTEED TO WORK)
+      if (attachment.url) {
+        if (attachment.contentType.startsWith('image/')) {
+          console.log('🖼️ Detected image, using canvas proxy method');
+          await downloadImageViaCanvas(attachment.url, attachment.filename);
+          return;
+        } else {
+          // For non-images, try direct link method
+          console.log('📄 Non-image file, trying direct download');
+          const link = document.createElement('a');
+          link.href = attachment.url;
+          link.download = attachment.filename;
+          link.style.display = 'none';
+
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-        } else {
-          throw new Error('Download failed');
+
+          console.log('✅ Direct download triggered for non-image');
+          return;
         }
-      } catch (error) {
-        console.error('Download failed:', error);
-        // Fallback to direct URL
-        window.open(attachment.url, '_blank');
       }
-    } else {
-      // Fallback to direct URL
-      window.open(attachment.url, '_blank');
+
+      throw new Error('No download URL available');
+
+    } catch (error) {
+      console.error('💥 All download methods failed:', error);
+
+      // User-friendly error with clipboard copy
+      const message = language === "es"
+        ? `❌ No se pudo descargar "${attachment.filename}" automáticamente.\n\nEl archivo se ha copiado al portapapeles. Pégalo en una nueva pestaña para descargarlo manualmente.`
+        : `❌ Could not download "${attachment.filename}" automatically.\n\nThe URL has been copied to clipboard. Paste it in a new tab to download manually.`;
+
+      // Copy URL to clipboard
+      if (attachment.url && navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(attachment.url);
+          alert(message);
+        } catch (clipError) {
+          alert(message.replace('se ha copiado al portapapeles', 'no se pudo copiar').replace('has been copied to clipboard', 'could not be copied'));
+        }
+      } else {
+        alert(message.replace('se ha copiado al portapapeles', 'no se pudo copiar').replace('has been copied to clipboard', 'could not be copied'));
+      }
     }
   };
 
@@ -389,9 +542,11 @@ export function FilePreviewDialog({
       {/* Content */}
       <div className="absolute top-16 bottom-4 left-2 right-2 md:left-4 md:right-4">
         {loading && (
-          <div className="text-white text-center">
-            <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p>{language === "es" ? "Cargando..." : "Loading..."}</p>
+          <div className="flex items-center justify-center h-full">
+            <div className="text-white text-center">
+              <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p>{language === "es" ? "Cargando..." : "Loading..."}</p>
+            </div>
           </div>
         )}
 

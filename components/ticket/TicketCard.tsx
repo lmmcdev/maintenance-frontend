@@ -294,15 +294,48 @@ export function TicketCard({ t, apiBase, token, onChanged }: TicketCardProps) {
         </div>
       )}
 
-      {/* Assignee info */}
-      {(t.assignee || t.assigneeId) && (
-        <div className="mb-4 sm:mb-5 p-2 sm:p-3 md:p-4 bg-gradient-to-r from-blue-50 to-blue-100/50 rounded-lg sm:rounded-xl border border-blue-200/60 shadow-sm">
-          <div className="text-xs sm:text-sm text-blue-600 font-semibold mb-1">Assigned to:</div>
-          <div className="text-xs sm:text-sm md:text-base font-bold text-blue-800">
-            {t.assignee ? `${t.assignee.firstName} ${t.assignee.lastName}` : t.assigneeId}
+      {/* Assignee info with profile photo */}
+      {(t.assignee || t.assigneeId) && (() => {
+        console.log('🎯 Showing assignee section for ticket:', t.id, {
+          hasAssignee: !!t.assignee,
+          assigneeId: t.assigneeId,
+          assigneeName: t.assignee ? `${t.assignee.firstName} ${t.assignee.lastName}` : 'N/A',
+          hasProfilePhoto: !!t.assignee?.profilePhoto?.url,
+          profilePhotoUrl: t.assignee?.profilePhoto?.url
+        });
+        return (
+          <div className="mb-4 sm:mb-5 p-2 sm:p-3 md:p-4 bg-gradient-to-r from-blue-50 to-blue-100/50 rounded-lg sm:rounded-xl border border-blue-200/60 shadow-sm">
+            <div className="text-xs sm:text-sm text-blue-600 font-semibold mb-2">Assigned to:</div>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
+                {t.assignee?.profilePhoto?.url ? (
+                  <img
+                    src={t.assignee.profilePhoto.url}
+                    alt={`${t.assignee.firstName} ${t.assignee.lastName}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      console.log('❌ Profile photo failed to load:', t.assignee?.profilePhoto?.url);
+                      // Hide broken image and show placeholder
+                      e.currentTarget.style.display = 'none';
+                      const placeholder = e.currentTarget.nextElementSibling as HTMLDivElement;
+                      if (placeholder) placeholder.style.display = 'flex';
+                    }}
+                    onLoad={() => console.log('✅ Profile photo loaded:', t.assignee?.profilePhoto?.url)}
+                  />
+                ) : null}
+                <div className={`w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ${t.assignee?.profilePhoto?.url ? 'hidden' : 'flex'}`}>
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="text-xs sm:text-sm md:text-base font-bold text-blue-800">
+                {t.assignee ? `${t.assignee.firstName} ${t.assignee.lastName}` : t.assigneeId}
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Configuration */}
       <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-5">

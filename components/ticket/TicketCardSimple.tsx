@@ -241,21 +241,80 @@ export function TicketCard({ t, apiBase, token, onChanged }: TicketCardProps) {
 
         return (
           <div className="mb-3 sm:mb-4">
-            <div className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-50 to-green-100/50 text-green-700 rounded-lg border border-green-200/60">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span className="text-sm font-semibold">
-                {t.assignee?.firstName
-                  ? `${t.assignee.firstName} ${t.assignee.lastName}`
-                  : t.assigneeId
-                  ? t.assigneeId
-                  : (t as any).assignees && (t as any).assignees.length > 0
-                  ? (t as any).assignees
-                      .map((a: any) => `${a.firstName} ${a.lastName}`)
-                      .join(", ")
-                  : (t as any).assigneeIds.join(", ")}
-              </span>
+            <div className="flex items-center gap-3 px-3 py-2 bg-gradient-to-r from-green-50 to-green-100/50 text-green-700 rounded-lg border border-green-200/60">
+              <span className="text-sm font-semibold">{translate("assigned.to.label")}</span>
+
+              {/* Multiple assignees with photos */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Single assignee */}
+                {t.assignee?.firstName && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
+                      {t.assignee?.profilePhoto?.url ? (
+                        <img
+                          src={t.assignee.profilePhoto.url}
+                          alt={`${t.assignee.firstName} ${t.assignee.lastName}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const placeholder = e.currentTarget.nextElementSibling as HTMLDivElement;
+                            if (placeholder) placeholder.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ${t.assignee?.profilePhoto?.url ? 'hidden' : 'flex'}`}>
+                        <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium">{t.assignee.firstName} {t.assignee.lastName}</span>
+                  </div>
+                )}
+
+                {/* Multiple assignees */}
+                {(t as any).assignees && (t as any).assignees.length > 0 && (t as any).assignees.map((assignee: any, index: number) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
+                      {assignee?.profilePhoto?.url ? (
+                        <img
+                          src={assignee.profilePhoto.url}
+                          alt={`${assignee.firstName} ${assignee.lastName}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const placeholder = e.currentTarget.nextElementSibling as HTMLDivElement;
+                            if (placeholder) placeholder.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ${assignee?.profilePhoto?.url ? 'hidden' : 'flex'}`}>
+                        <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium">{assignee.firstName} {assignee.lastName}</span>
+                    {index < (t as any).assignees.length - 1 && <span className="text-sm">,</span>}
+                  </div>
+                ))}
+
+                {/* Fallback for assigneeId or assigneeIds */}
+                {!t.assignee?.firstName && !(t as any).assignees?.length && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
+                      <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium">
+                      {t.assigneeId || ((t as any).assigneeIds && (t as any).assigneeIds.join(", "))}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -265,13 +324,13 @@ export function TicketCard({ t, apiBase, token, onChanged }: TicketCardProps) {
       <div className="flex flex-wrap gap-2 text-xs mb-4 sm:mb-5">
         {t.priority && (
           <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded-md">
-            <span className="font-medium">Priority:</span>
+            <span className="font-medium">{translate("priority")}</span>
             <span className="ml-1 capitalize">{t.priority}</span>
           </span>
         )}
         {(t.subcategory || t.category) && (
           <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded-md">
-            <span className="font-medium">Category:</span>
+            <span className="font-medium">{translate("category")}</span>
             <span className="ml-1">
               {typeof t.subcategory === "object" && t.subcategory?.displayName
                 ? t.subcategory.displayName
