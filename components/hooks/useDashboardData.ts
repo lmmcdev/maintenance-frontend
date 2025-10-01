@@ -113,10 +113,12 @@ export function useDashboardData(apiBase: string, token?: string, filters?: Dash
     CANCELLED: ticketsByStatus.CANCELLED.length
   }), [ticketsByStatus]);
 
-  // Calculate priorities
+  // Calculate priorities (excluding NEW tickets)
   const priorities = useMemo(() => {
     const acc = { LOW: 0, MEDIUM: 0, HIGH: 0, URGENT: 0 } as Record<string, number>;
-    allTickets.forEach((t) => (acc[t.priority] = (acc[t.priority] || 0) + 1));
+    allTickets
+      .filter(t => t.status !== 'NEW')
+      .forEach((t) => (acc[t.priority] = (acc[t.priority] || 0) + 1));
     return acc;
   }, [allTickets]);
 

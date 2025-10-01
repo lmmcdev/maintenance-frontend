@@ -24,8 +24,11 @@ export function CategoryChart({ tickets, onSubcategoryClick }: CategoryChartProp
   // Calculate category distribution
   const categoryData = React.useMemo(() => {
     const categoryCount: Record<string, number> = {};
-    
-    tickets.forEach(ticket => {
+
+    // Filter out NEW tickets
+    const filteredTickets = tickets.filter(ticket => ticket.status !== 'NEW');
+
+    filteredTickets.forEach(ticket => {
       let categoryName = "Uncategorized";
       
       if (ticket.subcategory) {
@@ -46,12 +49,12 @@ export function CategoryChart({ tickets, onSubcategoryClick }: CategoryChartProp
         name,
         count,
         color: getRandomColor(index),
-        percentage: tickets.length > 0 ? Math.round((count / tickets.length) * 100) : 0
+        percentage: filteredTickets.length > 0 ? Math.round((count / filteredTickets.length) * 100) : 0
       }))
       .sort((a, b) => b.count - a.count);
   }, [tickets]);
 
-  const total = tickets.length;
+  const total = categoryData.reduce((sum, cat) => sum + cat.count, 0);
 
   return (
     <section>

@@ -37,7 +37,10 @@ export function AssigneeChart({ tickets, onAssigneeClick }: AssigneeChartProps) 
   const assigneeData = React.useMemo(() => {
     const assigneeMap: Record<string, { name: string; count: number; id: string }> = {};
 
-    tickets.forEach(ticket => {
+    // Filter out NEW tickets
+    const filteredTickets = tickets.filter(ticket => ticket.status !== 'NEW');
+
+    filteredTickets.forEach(ticket => {
       const ticketAssignees: Array<{ name: string; id: string }> = [];
 
       // Handle different assignee data structures
@@ -95,12 +98,12 @@ export function AssigneeChart({ tickets, onAssigneeClick }: AssigneeChartProps) 
         id: assignee.id,
         count: assignee.count,
         color: getRandomColor(index),
-        percentage: tickets.length > 0 ? Math.round((assignee.count / tickets.length) * 100) : 0
+        percentage: filteredTickets.length > 0 ? Math.round((assignee.count / filteredTickets.length) * 100) : 0
       }))
       .sort((a, b) => b.count - a.count);
   }, [tickets]);
 
-  const total = tickets.length;
+  const total = assigneeData.reduce((sum, assignee) => sum + assignee.count, 0);
 
   return (
     <section>
