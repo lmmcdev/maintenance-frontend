@@ -35,20 +35,21 @@ export function AssigneeChart({ tickets, onAssigneeClick }: AssigneeChartProps) 
 
   // Calculate assignee distribution
   const assigneeData = React.useMemo(() => {
-    const assigneeMap: Record<string, { name: string; count: number; id: string }> = {};
+    const assigneeMap: Record<string, { name: string; count: number; id: string; profilePhoto?: string }> = {};
 
     // Filter out NEW tickets
     const filteredTickets = tickets.filter(ticket => ticket.status !== 'NEW');
 
     filteredTickets.forEach(ticket => {
-      const ticketAssignees: Array<{ name: string; id: string }> = [];
+      const ticketAssignees: Array<{ name: string; id: string; profilePhoto?: string }> = [];
 
       // Handle different assignee data structures
       if (ticket.assignee) {
         // Single Person object with firstName and lastName
         ticketAssignees.push({
           name: `${ticket.assignee.firstName} ${ticket.assignee.lastName}`.trim(),
-          id: ticket.assignee.id
+          id: ticket.assignee.id,
+          profilePhoto: ticket.assignee.profilePhoto?.url
         });
       } else if (ticket.assigneeId) {
         // Single ID string
@@ -62,12 +63,14 @@ export function AssigneeChart({ tickets, onAssigneeClick }: AssigneeChartProps) 
           if (assignee.firstName && assignee.lastName) {
             ticketAssignees.push({
               name: `${assignee.firstName} ${assignee.lastName}`.trim(),
-              id: assignee.id || assignee.firstName
+              id: assignee.id || assignee.firstName,
+              profilePhoto: assignee.profilePhoto?.url
             });
           } else if (assignee.id) {
             ticketAssignees.push({
               name: assignee.id,
-              id: assignee.id
+              id: assignee.id,
+              profilePhoto: assignee.profilePhoto?.url
             });
           }
         });
@@ -86,7 +89,12 @@ export function AssigneeChart({ tickets, onAssigneeClick }: AssigneeChartProps) 
       // Count each assignee for this ticket
       ticketAssignees.forEach(assignee => {
         if (!assigneeMap[assignee.id]) {
-          assigneeMap[assignee.id] = { name: assignee.name, count: 0, id: assignee.id };
+          assigneeMap[assignee.id] = {
+            name: assignee.name,
+            count: 0,
+            id: assignee.id,
+            profilePhoto: assignee.profilePhoto
+          };
         }
         assigneeMap[assignee.id].count++;
       });
@@ -98,7 +106,8 @@ export function AssigneeChart({ tickets, onAssigneeClick }: AssigneeChartProps) 
         id: assignee.id,
         count: assignee.count,
         color: getRandomColor(index),
-        percentage: filteredTickets.length > 0 ? Math.round((assignee.count / filteredTickets.length) * 100) : 0
+        percentage: filteredTickets.length > 0 ? Math.round((assignee.count / filteredTickets.length) * 100) : 0,
+        profilePhoto: assignee.profilePhoto
       }))
       .sort((a, b) => b.count - a.count);
   }, [tickets]);
@@ -143,14 +152,32 @@ export function AssigneeChart({ tickets, onAssigneeClick }: AssigneeChartProps) 
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <div
-                          className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex-shrink-0"
-                          style={{
-                            backgroundColor: assignee.color,
-                            boxShadow: `0 2px 6px ${assignee.color}40`,
-                            border: '2px solid white'
-                          }}
-                        />
+                        {/* Profile Photo or Color Indicator */}
+                        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex-shrink-0 overflow-hidden bg-gray-200 relative">
+                          {assignee.profilePhoto ? (
+                            <img
+                              src={assignee.profilePhoto}
+                              alt={assignee.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const placeholder = e.currentTarget.nextElementSibling as HTMLDivElement;
+                                if (placeholder) placeholder.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div
+                            className={`absolute inset-0 ${assignee.profilePhoto ? 'hidden' : 'flex'} items-center justify-center`}
+                            style={{
+                              backgroundColor: assignee.color,
+                              boxShadow: `0 2px 6px ${assignee.color}40`
+                            }}
+                          >
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                          </div>
+                        </div>
                         <span className="text-xs sm:text-sm font-semibold text-gray-700 truncate">
                           {assignee.name}
                         </span>
@@ -190,10 +217,92 @@ export function AssigneeChart({ tickets, onAssigneeClick }: AssigneeChartProps) 
                     <p className="text-xs sm:text-sm text-gray-500 font-medium">{translate("avg.per.assignee")}</p>
                   </div>
                   <div className="text-center col-span-2 sm:col-span-1">
-                    <p className="text-lg sm:text-xl font-bold truncate" style={{ color: assigneeData[0]?.color || "#8b5cf6" }}>
-                      {assigneeData[0]?.name || "N/A"}
-                    </p>
-                    <p className="text-xs sm:text-sm text-gray-500 font-medium">{translate("top.assignee")}</p>
+                    {(() => {
+                      // Get all assignees with the maximum count (handle ties)
+                      const maxCount = assigneeData[0]?.count || 0;
+                      const topAssignees = assigneeData.filter(a => a.count === maxCount);
+
+                      if (topAssignees.length === 0) {
+                        return <p className="text-lg sm:text-xl font-bold text-gray-500">N/A</p>;
+                      }
+
+                      if (topAssignees.length === 1) {
+                        const assignee = topAssignees[0];
+                        return (
+                          <div className="flex flex-col items-center gap-2">
+                            {/* Profile Photo */}
+                            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 relative">
+                              {assignee.profilePhoto ? (
+                                <img
+                                  src={assignee.profilePhoto}
+                                  alt={assignee.name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    const placeholder = e.currentTarget.nextElementSibling as HTMLDivElement;
+                                    if (placeholder) placeholder.style.display = 'flex';
+                                  }}
+                                />
+                              ) : null}
+                              <div
+                                className={`absolute inset-0 ${assignee.profilePhoto ? 'hidden' : 'flex'} items-center justify-center`}
+                                style={{
+                                  backgroundColor: assignee.color,
+                                  boxShadow: `0 2px 8px ${assignee.color}40`
+                                }}
+                              >
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <p className="text-lg sm:text-xl font-bold truncate" style={{ color: assignee.color }}>
+                              {assignee.name}
+                            </p>
+                          </div>
+                        );
+                      }
+
+                      // Multiple top assignees (tie)
+                      return (
+                        <div className="flex flex-col gap-2">
+                          {topAssignees.map((assignee) => (
+                            <div key={assignee.id} className="flex items-center justify-center gap-2">
+                              {/* Profile Photo */}
+                              <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 relative flex-shrink-0">
+                                {assignee.profilePhoto ? (
+                                  <img
+                                    src={assignee.profilePhoto}
+                                    alt={assignee.name}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      const placeholder = e.currentTarget.nextElementSibling as HTMLDivElement;
+                                      if (placeholder) placeholder.style.display = 'flex';
+                                    }}
+                                  />
+                                ) : null}
+                                <div
+                                  className={`absolute inset-0 ${assignee.profilePhoto ? 'hidden' : 'flex'} items-center justify-center`}
+                                  style={{
+                                    backgroundColor: assignee.color,
+                                    boxShadow: `0 2px 6px ${assignee.color}40`
+                                  }}
+                                >
+                                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                  </svg>
+                                </div>
+                              </div>
+                              <p className="text-sm sm:text-base font-bold truncate" style={{ color: assignee.color }}>
+                                {assignee.name}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                    <p className="text-xs sm:text-sm text-gray-500 font-medium mt-2">{translate("top.assignee")}</p>
                   </div>
                 </div>
               </div>

@@ -135,9 +135,38 @@ export function CategoryChart({ tickets, onSubcategoryClick }: CategoryChartProp
                     <p className="text-xs sm:text-sm text-gray-500 font-medium">{translate("avg.per.category")}</p>
                   </div>
                   <div className="text-center col-span-2 sm:col-span-1">
-                    <p className="text-lg sm:text-xl font-bold" style={{ color: categoryData[0]?.color || "#00a1ff" }}>
-                      {categoryData[0]?.name || "N/A"}
-                    </p>
+                    {(() => {
+                      // Get all categories with the maximum count (handle ties)
+                      const maxCount = categoryData[0]?.count || 0;
+                      const topCategories = categoryData.filter(c => c.count === maxCount);
+
+                      if (topCategories.length === 0) {
+                        return <p className="text-lg sm:text-xl font-bold text-gray-500">N/A</p>;
+                      }
+
+                      if (topCategories.length === 1) {
+                        return (
+                          <p className="text-lg sm:text-xl font-bold" style={{ color: topCategories[0].color }}>
+                            {topCategories[0].name}
+                          </p>
+                        );
+                      }
+
+                      // Multiple top categories (tie)
+                      return (
+                        <div className="flex flex-col gap-1">
+                          {topCategories.map((category) => (
+                            <p
+                              key={category.name}
+                              className="text-sm sm:text-base font-bold truncate"
+                              style={{ color: category.color }}
+                            >
+                              {category.name}
+                            </p>
+                          ))}
+                        </div>
+                      );
+                    })()}
                     <p className="text-xs sm:text-sm text-gray-500 font-medium">{translate("most.common")}</p>
                   </div>
                 </div>
