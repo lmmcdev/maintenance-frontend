@@ -15,16 +15,20 @@ function getRandomColor(index: number) {
 
 type CategoryChartProps = {
   tickets: Ticket[];
+  onSubcategoryClick?: (subcategoryName: string) => void;
 };
 
-export function CategoryChart({ tickets }: CategoryChartProps) {
+export function CategoryChart({ tickets, onSubcategoryClick }: CategoryChartProps) {
   const { t: translate } = useLanguage();
 
   // Calculate category distribution
   const categoryData = React.useMemo(() => {
     const categoryCount: Record<string, number> = {};
-    
-    tickets.forEach(ticket => {
+
+    // Filter out NEW tickets
+    const filteredTickets = tickets.filter(ticket => ticket.status !== 'NEW');
+
+    filteredTickets.forEach(ticket => {
       let categoryName = "Uncategorized";
       
       if (ticket.subcategory) {
@@ -45,12 +49,12 @@ export function CategoryChart({ tickets }: CategoryChartProps) {
         name,
         count,
         color: getRandomColor(index),
-        percentage: tickets.length > 0 ? Math.round((count / tickets.length) * 100) : 0
+        percentage: filteredTickets.length > 0 ? Math.round((count / filteredTickets.length) * 100) : 0
       }))
       .sort((a, b) => b.count - a.count);
   }, [tickets]);
 
-  const total = tickets.length;
+  const total = categoryData.reduce((sum, cat) => sum + cat.count, 0);
 
   return (
     <section>
@@ -81,10 +85,14 @@ export function CategoryChart({ tickets }: CategoryChartProps) {
               {/* Visual bars */}
               <div className="space-y-2 sm:space-y-3">
                 {categoryData.map((category) => (
-                  <div key={category.name} className="space-y-1 sm:space-y-2">
+                  <div
+                    key={category.name}
+                    className={`space-y-1 sm:space-y-2 ${onSubcategoryClick ? 'cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors' : ''}`}
+                    onClick={() => onSubcategoryClick?.(category.name)}
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div 
+                        <div
                           className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0"
                           style={{ backgroundColor: category.color }}
                         />
@@ -97,12 +105,12 @@ export function CategoryChart({ tickets }: CategoryChartProps) {
                         <span className="text-gray-500">({category.percentage}%)</span>
                       </div>
                     </div>
-                    
+
                     {/* Progress bar */}
                     <div className="w-full bg-gray-200 rounded-full h-2 sm:h-2.5">
-                      <div 
+                      <div
                         className="h-full rounded-full transition-all duration-500 ease-out"
-                        style={{ 
+                        style={{
                           backgroundColor: category.color,
                           width: `${category.percentage}%`,
                           boxShadow: `0 2px 4px ${category.color}40`
@@ -127,9 +135,38 @@ export function CategoryChart({ tickets }: CategoryChartProps) {
                     <p className="text-xs sm:text-sm text-gray-500 font-medium">{translate("avg.per.category")}</p>
                   </div>
                   <div className="text-center col-span-2 sm:col-span-1">
-                    <p className="text-lg sm:text-xl font-bold" style={{ color: categoryData[0]?.color || "#00a1ff" }}>
-                      {categoryData[0]?.name || "N/A"}
-                    </p>
+                    {(() => {
+                      // Get all categories with the maximum count (handle ties)
+                      const maxCount = categoryData[0]?.count || 0;
+                      const topCategories = categoryData.filter(c => c.count === maxCount);
+
+                      if (topCategories.length === 0) {
+                        return <p className="text-lg sm:text-xl font-bold text-gray-500">N/A</p>;
+                      }
+
+                      if (topCategories.length === 1) {
+                        return (
+                          <p className="text-lg sm:text-xl font-bold" style={{ color: topCategories[0].color }}>
+                            {topCategories[0].name}
+                          </p>
+                        );
+                      }
+
+                      // Multiple top categories (tie)
+                      return (
+                        <div className="flex flex-col gap-1">
+                          {topCategories.map((category) => (
+                            <p
+                              key={category.name}
+                              className="text-sm sm:text-base font-bold truncate"
+                              style={{ color: category.color }}
+                            >
+                              {category.name}
+                            </p>
+                          ))}
+                        </div>
+                      );
+                    })()}
                     <p className="text-xs sm:text-sm text-gray-500 font-medium">{translate("most.common")}</p>
                   </div>
                 </div>
