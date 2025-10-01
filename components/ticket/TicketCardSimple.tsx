@@ -370,7 +370,7 @@ export function TicketCard({ t, apiBase, token, onChanged }: TicketCardProps) {
         {/* Action Buttons based on status */}
         {t.status !== "CANCELLED" && (
           <>
-            {(t.status === "NEW" || t.status === "OPEN") && (
+            {t.status === "OPEN" && (
               <>
                 <button
                   onClick={markDone}
@@ -395,6 +395,19 @@ export function TicketCard({ t, apiBase, token, onChanged }: TicketCardProps) {
                   <span className="sm:hidden leading-none">{translate("button.cancel")}</span>
                 </button>
               </>
+            )}
+            {t.status === "NEW" && (
+              <button
+                onClick={() => setShowCancelDialog(true)}
+                disabled={!!busy}
+                className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 active:bg-red-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 text-xs sm:text-sm font-medium shadow-sm hover:shadow-md active:shadow-sm disabled:shadow-sm flex items-center justify-center gap-1.5 flex-shrink-0 min-h-[36px]"
+              >
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="hidden sm:inline leading-none">{translate("cancel.ticket.action")}</span>
+                <span className="sm:hidden leading-none">{translate("button.cancel")}</span>
+              </button>
             )}
             {t.status === "DONE" && (
               <button
