@@ -15,9 +15,10 @@ function getRandomColor(index: number) {
 
 type AssigneeChartProps = {
   tickets: Ticket[];
+  onAssigneeClick?: (assigneeId: string) => void;
 };
 
-export function AssigneeChart({ tickets }: AssigneeChartProps) {
+export function AssigneeChart({ tickets, onAssigneeClick }: AssigneeChartProps) {
   const { t: translate } = useLanguage();
 
   // Debug logging to see ticket data structure
@@ -34,49 +35,67 @@ export function AssigneeChart({ tickets }: AssigneeChartProps) {
 
   // Calculate assignee distribution
   const assigneeData = React.useMemo(() => {
-    const assigneeCount: Record<string, number> = {};
-    
+    const assigneeMap: Record<string, { name: string; count: number; id: string }> = {};
+
     tickets.forEach(ticket => {
-      const ticketAssignees: string[] = [];
-      
+      const ticketAssignees: Array<{ name: string; id: string }> = [];
+
       // Handle different assignee data structures
       if (ticket.assignee) {
         // Single Person object with firstName and lastName
-        ticketAssignees.push(`${ticket.assignee.firstName} ${ticket.assignee.lastName}`.trim());
+        ticketAssignees.push({
+          name: `${ticket.assignee.firstName} ${ticket.assignee.lastName}`.trim(),
+          id: ticket.assignee.id
+        });
       } else if (ticket.assigneeId) {
         // Single ID string
-        ticketAssignees.push(ticket.assigneeId);
+        ticketAssignees.push({
+          name: ticket.assigneeId,
+          id: ticket.assigneeId
+        });
       } else if ((ticket as any).assignees && Array.isArray((ticket as any).assignees)) {
         // Array of Person objects
         (ticket as any).assignees.forEach((assignee: any) => {
           if (assignee.firstName && assignee.lastName) {
-            ticketAssignees.push(`${assignee.firstName} ${assignee.lastName}`.trim());
+            ticketAssignees.push({
+              name: `${assignee.firstName} ${assignee.lastName}`.trim(),
+              id: assignee.id || assignee.firstName
+            });
           } else if (assignee.id) {
-            ticketAssignees.push(assignee.id);
+            ticketAssignees.push({
+              name: assignee.id,
+              id: assignee.id
+            });
           }
         });
       } else if ((ticket as any).assigneeIds && Array.isArray((ticket as any).assigneeIds)) {
         // Array of ID strings
-        ticketAssignees.push(...(ticket as any).assigneeIds);
+        (ticket as any).assigneeIds.forEach((id: string) => {
+          ticketAssignees.push({ name: id, id });
+        });
       }
-      
+
       // If no assignees found, mark as unassigned
       if (ticketAssignees.length === 0) {
-        ticketAssignees.push("Unassigned");
+        ticketAssignees.push({ name: "Unassigned", id: "unassigned" });
       }
-      
+
       // Count each assignee for this ticket
-      ticketAssignees.forEach(assigneeName => {
-        assigneeCount[assigneeName] = (assigneeCount[assigneeName] || 0) + 1;
+      ticketAssignees.forEach(assignee => {
+        if (!assigneeMap[assignee.id]) {
+          assigneeMap[assignee.id] = { name: assignee.name, count: 0, id: assignee.id };
+        }
+        assigneeMap[assignee.id].count++;
       });
     });
 
-    return Object.entries(assigneeCount)
-      .map(([name, count], index) => ({
-        name,
-        count,
+    return Object.values(assigneeMap)
+      .map((assignee, index) => ({
+        name: assignee.name,
+        id: assignee.id,
+        count: assignee.count,
         color: getRandomColor(index),
-        percentage: tickets.length > 0 ? Math.round((count / tickets.length) * 100) : 0
+        percentage: tickets.length > 0 ? Math.round((assignee.count / tickets.length) * 100) : 0
       }))
       .sort((a, b) => b.count - a.count);
   }, [tickets]);
@@ -114,12 +133,16 @@ export function AssigneeChart({ tickets }: AssigneeChartProps) {
               {/* Visual bars */}
               <div className="flex-1 space-y-2 sm:space-y-3 overflow-y-auto">
                 {assigneeData.map((assignee) => (
-                  <div key={assignee.name} className="space-y-1 sm:space-y-2">
+                  <div
+                    key={assignee.id}
+                    className={`space-y-1 sm:space-y-2 ${onAssigneeClick ? 'cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors' : ''}`}
+                    onClick={() => onAssigneeClick?.(assignee.id)}
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <div 
+                        <div
                           className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex-shrink-0"
-                          style={{ 
+                          style={{
                             backgroundColor: assignee.color,
                             boxShadow: `0 2px 6px ${assignee.color}40`,
                             border: '2px solid white'
@@ -134,12 +157,12 @@ export function AssigneeChart({ tickets }: AssigneeChartProps) {
                         <span className="text-gray-500 font-medium">({assignee.percentage}%)</span>
                       </div>
                     </div>
-                    
+
                     {/* Progress bar */}
                     <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-3">
-                      <div 
+                      <div
                         className="h-full rounded-full transition-all duration-500 ease-out"
-                        style={{ 
+                        style={{
                           backgroundColor: assignee.color,
                           width: `${assignee.percentage}%`,
                           boxShadow: `0 2px 6px ${assignee.color}40`

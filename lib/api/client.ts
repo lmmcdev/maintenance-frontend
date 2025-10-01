@@ -149,6 +149,9 @@ export type ListTicketsParams = {
   continuationToken?: string;
   sortBy?: "createdAt" | "updatedAt" | "priority" | "status";
   sortDir?: "asc" | "desc";
+  assigneeId?: string;
+  subcategoryDisplayName?: string;
+  priority?: TicketPriority;
 };
 
 export async function listTickets(
@@ -162,6 +165,9 @@ export async function listTickets(
     qs.set("continuationToken", params.continuationToken);
   if (params.sortBy) qs.set("sortBy", params.sortBy);
   if (params.sortDir) qs.set("sortDir", params.sortDir);
+  if (params.assigneeId) qs.set("assigneeId", params.assigneeId);
+  if (params.subcategoryDisplayName) qs.set("subcategoryDisplayName", params.subcategoryDisplayName);
+  if (params.priority) qs.set("priority", params.priority);
 
   const url = withBase(opts.apiBase, `/api/v1/tickets?${qs.toString()}`);
   return fetchJson<ApiListResponse<Ticket>>(url, { cache: "no-store" }, opts.token);

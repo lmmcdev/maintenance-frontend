@@ -3,13 +3,28 @@
 import { useState, useEffect, useMemo } from "react";
 import { Ticket, TicketStatus, ListResponse } from "../types/ticket";
 
-export function useDashboardData(apiBase: string, token?: string, createdFrom?: Date, createdTo?: Date) {
+export interface DashboardFilters {
+  createdFrom?: Date;
+  createdTo?: Date;
+  assigneeId?: string;
+  subcategoryDisplayName?: string;
+  priority?: string;
+}
+
+export function useDashboardData(apiBase: string, token?: string, filters?: DashboardFilters) {
   const [allTickets, setAllTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const reload = useMemo(() => {
-    return async () => {
+  // Serialize filter values for dependency tracking
+  const createdFromStr = filters?.createdFrom?.toISOString();
+  const createdToStr = filters?.createdTo?.toISOString();
+  const assigneeId = filters?.assigneeId;
+  const subcategoryDisplayName = filters?.subcategoryDisplayName;
+  const priority = filters?.priority;
+
+  useEffect(() => {
+    const loadData = async () => {
       setLoading(true);
       setError(null);
       try {
@@ -20,13 +35,28 @@ export function useDashboardData(apiBase: string, token?: string, createdFrom?: 
         params.append('sortDir', 'desc');
 
         // Add date filters if provided
-        if (createdFrom) {
-          const fromDate = createdFrom.toISOString().split('T')[0];
+        if (createdFromStr) {
+          const fromDate = createdFromStr.split('T')[0];
           params.append('createdFrom', fromDate);
         }
-        if (createdTo) {
-          const toDate = createdTo.toISOString().split('T')[0];
+        if (createdToStr) {
+          const toDate = createdToStr.split('T')[0];
           params.append('createdTo', toDate);
+        }
+
+        // Add assignee filter
+        if (assigneeId) {
+          params.append('assigneeId', assigneeId);
+        }
+
+        // Add subcategory filter
+        if (subcategoryDisplayName) {
+          params.append('subcategoryDisplayName', subcategoryDisplayName);
+        }
+
+        // Add priority filter
+        if (priority) {
+          params.append('priority', priority);
         }
 
         const url = `${apiBase}/api/v1/tickets?${params.toString()}`;
@@ -41,18 +71,21 @@ export function useDashboardData(apiBase: string, token?: string, createdFrom?: 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json: ListResponse = await res.json();
         if (!json.success) throw new Error("API returned success=false");
-        setAllTickets(json.data.items || []);
+
+        // Filter out CANCELLED tickets client-side as well (in case backend doesn't support excludeStatus)
+        const filteredTickets = (json.data.items || []).filter(
+          ticket => ticket.status !== 'CANCELLED'
+        );
+        setAllTickets(filteredTickets);
       } catch (err: any) {
         setError(err?.message || "Unknown error");
       } finally {
         setLoading(false);
       }
     };
-  }, [apiBase, token, createdFrom, createdTo]);
 
-  useEffect(() => {
-    reload();
-  }, [reload]);
+    loadData();
+  }, [apiBase, token, createdFromStr, createdToStr, assigneeId, subcategoryDisplayName, priority]);
 
   // Filter tickets by status locally
   const ticketsByStatus = useMemo(() => {
@@ -93,7 +126,6 @@ export function useDashboardData(apiBase: string, token?: string, createdFrom?: 
     counts,
     priorities,
     loading,
-    error,
-    reload
+    error
   };
 }

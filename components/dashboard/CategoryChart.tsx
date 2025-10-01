@@ -15,9 +15,10 @@ function getRandomColor(index: number) {
 
 type CategoryChartProps = {
   tickets: Ticket[];
+  onSubcategoryClick?: (subcategoryName: string) => void;
 };
 
-export function CategoryChart({ tickets }: CategoryChartProps) {
+export function CategoryChart({ tickets, onSubcategoryClick }: CategoryChartProps) {
   const { t: translate } = useLanguage();
 
   // Calculate category distribution
@@ -81,10 +82,14 @@ export function CategoryChart({ tickets }: CategoryChartProps) {
               {/* Visual bars */}
               <div className="space-y-2 sm:space-y-3">
                 {categoryData.map((category) => (
-                  <div key={category.name} className="space-y-1 sm:space-y-2">
+                  <div
+                    key={category.name}
+                    className={`space-y-1 sm:space-y-2 ${onSubcategoryClick ? 'cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors' : ''}`}
+                    onClick={() => onSubcategoryClick?.(category.name)}
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div 
+                        <div
                           className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0"
                           style={{ backgroundColor: category.color }}
                         />
@@ -97,12 +102,12 @@ export function CategoryChart({ tickets }: CategoryChartProps) {
                         <span className="text-gray-500">({category.percentage}%)</span>
                       </div>
                     </div>
-                    
+
                     {/* Progress bar */}
                     <div className="w-full bg-gray-200 rounded-full h-2 sm:h-2.5">
-                      <div 
+                      <div
                         className="h-full rounded-full transition-all duration-500 ease-out"
-                        style={{ 
+                        style={{
                           backgroundColor: category.color,
                           width: `${category.percentage}%`,
                           boxShadow: `0 2px 4px ${category.color}40`

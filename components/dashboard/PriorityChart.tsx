@@ -6,9 +6,10 @@ import { useLanguage } from "../context/LanguageContext";
 
 type PriorityChartProps = {
   priorities: Record<string, number>;
+  onPriorityClick?: (priority: string) => void;
 };
 
-export function PriorityChart({ priorities }: PriorityChartProps) {
+export function PriorityChart({ priorities, onPriorityClick }: PriorityChartProps) {
   const { t } = useLanguage();
   const total = priorities.LOW + priorities.MEDIUM + priorities.HIGH + priorities.URGENT || 1;
 
@@ -82,15 +83,15 @@ export function PriorityChart({ priorities }: PriorityChartProps) {
               {/* Pie Chart */}
               <div className="relative flex-shrink-0 flex items-center justify-center">
                 <svg width="200" height="200" viewBox="0 0 200 200" className="w-36 h-36 sm:w-44 sm:h-44 xl:w-48 xl:h-48">
-                  {pieSegments.map((segment, index) => (
-                    <g key={segment.priority}>
+                  {pieSegments.map((segment) => (
+                    <g key={segment.priority} onClick={() => onPriorityClick?.(segment.priority)}>
                       <path
                         d={createPieSlice(segment.startAngle, segment.endAngle, segment.color)}
                         fill={segment.color}
                         stroke="white"
                         strokeWidth="3"
-                        className="hover:opacity-90 transition-all duration-300 cursor-pointer hover:stroke-4"
-                        style={{ 
+                        className={`hover:opacity-90 transition-all duration-300 ${onPriorityClick ? 'cursor-pointer' : ''} hover:stroke-4`}
+                        style={{
                           filter: `drop-shadow(0 3px 6px ${segment.color}30)`,
                           transformOrigin: '100px 100px'
                         }}
@@ -121,11 +122,15 @@ export function PriorityChart({ priorities }: PriorityChartProps) {
               <div className="flex-1 w-full xl:w-auto">
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-2 sm:gap-3">
                   {priorityData.map((item) => (
-                    <div key={item.priority} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg hover:bg-gray-50/80 transition-all duration-200 border border-transparent hover:border-gray-200/50">
-                      <div 
+                    <div
+                      key={item.priority}
+                      className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg hover:bg-gray-50/80 transition-all duration-200 border border-transparent hover:border-gray-200/50 ${onPriorityClick ? 'cursor-pointer' : ''}`}
+                      onClick={() => onPriorityClick?.(item.priority)}
+                    >
+                      <div
                         className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex-shrink-0"
-                        style={{ 
-                          backgroundColor: item.color, 
+                        style={{
+                          backgroundColor: item.color,
                           boxShadow: `0 2px 6px ${item.color}40`,
                           border: '2px solid white'
                         }}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useDashboardData } from "../hooks/useDashboardData";
+import { useDashboardData, DashboardFilters as DashboardFiltersType } from "../hooks/useDashboardData";
 import { StickyDashboardHeader } from "../layout/StickyHeaders";
 import { StatBoxes } from "./StatBoxes";
 import { PriorityChart } from "./PriorityChart";
@@ -9,17 +9,57 @@ import { CategoryChart } from "./CategoryChart";
 import { AssigneeChart } from "./AssigneeChart";
 import { StaticDataProvider } from "../context/StaticDataContext";
 import { DateFilters } from "../ticket/DateFilters";
+import { DashboardFilters } from "./DashboardFilters";
+import { FilteredTicketsList } from "./FilteredTicketsList";
 
 export function TicketsDashboard({ apiBase = "/_api", token }: { apiBase?: string; token?: string }) {
   const [createdFrom, setCreatedFrom] = useState<Date | undefined>();
   const [createdTo, setCreatedTo] = useState<Date | undefined>();
+  const [assigneeId, setAssigneeId] = useState<string | undefined>();
+  const [subcategoryDisplayName, setSubcategoryDisplayName] = useState<string | undefined>();
+  const [priority, setPriority] = useState<string | undefined>();
 
-  const { allTickets, counts, priorities, loading } = useDashboardData(apiBase, token, createdFrom, createdTo);
+  const filters: DashboardFiltersType = {
+    createdFrom,
+    createdTo,
+    assigneeId,
+    subcategoryDisplayName,
+    priority,
+  };
 
-  const handleClearFilters = () => {
+  const { allTickets, counts, priorities, loading } = useDashboardData(apiBase, token, filters);
+
+  const handleClearDateFilters = () => {
     setCreatedFrom(undefined);
     setCreatedTo(undefined);
   };
+
+  const handleClearAdditionalFilters = () => {
+    setAssigneeId(undefined);
+    setSubcategoryDisplayName(undefined);
+    setPriority(undefined);
+  };
+
+  const handleSubcategoryClick = (subcategory: string) => {
+    setSubcategoryDisplayName(subcategory);
+    // Scroll to filters
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleAssigneeClick = (id: string) => {
+    setAssigneeId(id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePriorityClick = (priorityValue: string) => {
+    setPriority(priorityValue);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Check if there are any active filters
+  const hasActiveFilters = Boolean(
+    createdFrom || createdTo || assigneeId || subcategoryDisplayName || priority
+  );
 
   return (
     <StaticDataProvider apiBase={apiBase} token={token}>
@@ -38,14 +78,24 @@ export function TicketsDashboard({ apiBase = "/_api", token }: { apiBase?: strin
             createdTo={createdTo}
             onDateFromChange={setCreatedFrom}
             onDateToChange={setCreatedTo}
-            onClear={handleClearFilters}
+            onClear={handleClearDateFilters}
+          />
+          <DashboardFilters
+            apiBase={apiBase}
+            token={token}
+            assigneeId={assigneeId}
+            subcategoryDisplayName={subcategoryDisplayName}
+            onAssigneeChange={setAssigneeId}
+            onSubcategoryChange={setSubcategoryDisplayName}
+            onClear={handleClearAdditionalFilters}
           />
           <StatBoxes counts={counts} />
-          <CategoryChart tickets={allTickets} />
+          <CategoryChart tickets={allTickets} onSubcategoryClick={handleSubcategoryClick} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-5 md:gap-6">
-            <PriorityChart priorities={priorities} />
-            <AssigneeChart tickets={allTickets} />
+            <PriorityChart priorities={priorities} onPriorityClick={handlePriorityClick} />
+            <AssigneeChart tickets={allTickets} onAssigneeClick={handleAssigneeClick} />
           </div>
+          <FilteredTicketsList tickets={allTickets} hasActiveFilters={hasActiveFilters} />
         </div>
       )}
     </div>
